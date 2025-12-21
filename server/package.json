@@ -1,0 +1,46 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Web server for CIS 5500 project",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon --ignore ./swagger.json app.js",
+    "dev:debug": "nodemon --inspect app.js",
+    "dev:verbose": "nodemon --verbose app.js",
+    "prod": "NODE_ENV=production node app.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:e2e": "jest tests/e2e",
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "generate:types": "openapi-typescript ./swagger.json --output ../client/src/types/server.d.ts"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.16.5",
+    "node-cache": "^5.1.2",
+    "pg": "^8.11.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "@types/jest": "^29.5.8",
+    "axios": "^1.7.9",
+    "eslint": "^9.31.0",
+    "jest": "^29.7.0",
+    "jest-sonar-reporter": "^2.0.0",
+    "jest-watch-typeahead": "^2.2.2",
+    "nodemon": "^3.0.1",
+    "openapi-typescript": "^7.8.0",
+    "supertest": "^6.3.3"
+  }
+}

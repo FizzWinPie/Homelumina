@@ -1,0 +1,845 @@
+{
+  "info": {
+    "_postman_id": "cis5500-group7-api-collection",
+    "name": "CIS5500 Group 7 API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Comprehensive collection for all Group 7 API endpoints. Updated to reflect current implementation without minRating parameter."
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Root",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/",
+              "host": ["http://localhost:3000"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/health",
+              "host": ["http://localhost:3000"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Facilities",
+      "item": [
+        {
+          "name": "Top Facilities by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/facilities/top?zipcode=19104&limit=5",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "facilities", "top"],
+              "query": [
+                {"key": "zipcode", "value": "19104"},
+                {"key": "limit", "value": "5"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Facilities",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/facilities/search?zipcode=19104&city=Philadelphia&facilityType=childcare&limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "facilities", "search"],
+              "query": [
+                {"key": "zipcode", "value": "19104"},
+                {"key": "city", "value": "Philadelphia"},
+                {"key": "facilityType", "value": "childcare"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Childcare by City",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/facilities/childcare?city=Philadelphia&limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "facilities", "childcare"],
+              "query": [
+                {"key": "city", "value": "Philadelphia"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Facilities Count by Type",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/facilities/count?zipcode=19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "facilities", "count"],
+              "query": [
+                {"key": "zipcode", "value": "19104"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validate Facility Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/facilities/validate/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "facilities", "validate", "19104"]
+            }
+          }
+        },
+        {
+          "name": "Facility Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/facilities/stats?zipcode=19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "facilities", "stats"],
+              "query": [
+                {"key": "zipcode", "value": "19104"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Real Estate",
+      "item": [
+        {
+          "name": "Search Properties",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/search?zipcode=19104&minPrice=100000&maxPrice=500000&bedrooms=2&limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "search"],
+              "query": [
+                {"key": "zipcode", "value": "19104"},
+                {"key": "minPrice", "value": "100000"},
+                {"key": "maxPrice", "value": "500000"},
+                {"key": "bedrooms", "value": "2"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lowest Prices",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/lowest-prices",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "lowest-prices"]
+            }
+          }
+        },
+        {
+          "name": "Highest Prices",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/highest-prices",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "highest-prices"]
+            }
+          }
+        },
+        {
+          "name": "Prices by Zipcode Range",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/prices/zipcode-range?startZipcode=19100&endZipcode=19199&limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "prices", "zipcode-range"],
+              "query": [
+                {"key": "startZipcode", "value": "19100"},
+                {"key": "endZipcode", "value": "19199"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Statistics by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/statistics/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "statistics", "19104"]
+            }
+          }
+        },
+        {
+          "name": "Affordable Housing",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/affordable?maxPrice=300000&limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "affordable"],
+              "query": [
+                {"key": "maxPrice", "value": "300000"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Affordable Zipcodes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/affordable-zipcodes?city=Philadelphia&state=PA&maxPrice=300000",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "affordable-zipcodes"],
+              "query": [
+                {"key": "city", "value": "Philadelphia"},
+                {"key": "state", "value": "PA"},
+                {"key": "maxPrice", "value": "300000"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Average Prices",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/average-prices?city=Philadelphia&state=PA",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "average-prices"],
+              "query": [
+                {"key": "city", "value": "Philadelphia"},
+                {"key": "state", "value": "PA"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Compare Zipcodes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/compare-zipcodes?zipcode1=19104&zipcode2=19102",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "compare-zipcodes"],
+              "query": [
+                {"key": "zipcode1", "value": "19104"},
+                {"key": "zipcode2", "value": "19102"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validate Price Range",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/validate-price-range?minPrice=100000&maxPrice=500000",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "validate-price-range"],
+              "query": [
+                {"key": "minPrice", "value": "100000"},
+                {"key": "maxPrice", "value": "500000"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lowest Prices by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/lowest-prices/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "lowest-prices", "19104"]
+            }
+          }
+        },
+        {
+          "name": "Price Analysis by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/price-analysis/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "price-analysis", "19104"]
+            }
+          }
+        },
+        {
+          "name": "Price Trends by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/price-trends/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "price-trends", "19104"]
+            }
+          }
+        },
+        {
+          "name": "Lowest Price Zipcode by City/State",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/lowest-price-zipcode/Philadelphia/PA",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "lowest-price-zipcode", "Philadelphia", "PA"]
+            }
+          }
+        },
+        {
+          "name": "Stats by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/stats-by-zipcode?zipcode=19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "stats-by-zipcode"],
+              "query": [
+                {"key": "zipcode", "value": "19104"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validate Real Estate Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/real-estate/validate-zipcode/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "real-estate", "validate-zipcode", "19104"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Analytics Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/summary",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "summary"]
+            }
+          }
+        },
+        {
+          "name": "Market Trends",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/market-trends?city=Philadelphia&months=6",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "market-trends"],
+              "query": [
+                {"key": "city", "value": "Philadelphia"},
+                {"key": "months", "value": "6"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Zipcode Comparison",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/zipcode-comparison?zipcodes=19104,19102",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "zipcode-comparison"],
+              "query": [
+                {"key": "zipcodes", "value": "19104,19102"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validate Analytics Params",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/validate-params?limit=10&maxPrice=500000",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "validate-params"],
+              "query": [
+                {"key": "limit", "value": "10"},
+                {"key": "maxPrice", "value": "500000"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "City Comparison",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/city-comparison/Philadelphia/PA",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "city-comparison", "Philadelphia", "PA"]
+            }
+          }
+        },
+        {
+          "name": "City Aggregate Comparison",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/city-aggregate-comparison?city1=Philadelphia&state1=PA",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "city-aggregate-comparison"],
+              "query": [
+                {"key": "city1", "value": "Philadelphia"},
+                {"key": "state1", "value": "PA"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "City Growth Rate",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/city-growth-rate/Philadelphia/PA",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "city-growth-rate", "Philadelphia", "PA"]
+            }
+          }
+        },
+        {
+          "name": "Similar Zipcodes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/similar-zipcodes/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "similar-zipcodes", "19104"]
+            }
+          }
+        },
+        {
+          "name": "Similar Cities",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/similar-cities/Philadelphia/PA",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "similar-cities", "Philadelphia", "PA"]
+            }
+          }
+        },
+        {
+          "name": "Underserved Zipcodes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/underserved-zipcodes?limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "underserved-zipcodes"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Growth Leaders",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/growth-leaders?limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "growth-leaders"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Hospital Distance by Price",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/hospital-distance-by-price?zipcode=19104&limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "hospital-distance-by-price"],
+              "query": [
+                {"key": "zipcode", "value": "19104"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Safety Sale Ratio",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/safety-sale-ratio?zipcode=19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "safety-sale-ratio"],
+              "query": [
+                {"key": "zipcode", "value": "19104"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Facilities Population",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/facilities-population?zipcode=19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "facilities-population"],
+              "query": [
+                {"key": "zipcode", "value": "19104"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Facilities to Population by City",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/facilities-to-population?city=Philadelphia&state=PA",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "facilities-to-population"],
+              "query": [
+                {"key": "city", "value": "Philadelphia"},
+                {"key": "state", "value": "PA"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Affordable Zipcodes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/affordable-zipcodes?city=Philadelphia&state=PA&maxPrice=300000",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "affordable-zipcodes"],
+              "query": [
+                {"key": "city", "value": "Philadelphia"},
+                {"key": "state", "value": "PA"},
+                {"key": "maxPrice", "value": "300000"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Underserved Healthcare",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/underserved-healthcare?limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "underserved-healthcare"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Homepage Featured Zipcodes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/homepage-featured-zipcodes?limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "homepage-featured-zipcodes"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Location Data by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/analytics/location/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "analytics", "location", "19104"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/status",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "status"]
+            }
+          }
+        },
+        {
+          "name": "Database Health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/database",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "database"]
+            }
+          }
+        },
+        {
+          "name": "Memory Usage",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/memory",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "memory"]
+            }
+          }
+        },
+        {
+          "name": "List All Tables",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/tables",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "tables"]
+            }
+          }
+        },
+        {
+          "name": "Table Structure",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/table-structure/healthmeasure",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "table-structure", "healthmeasure"]
+            }
+          }
+        },
+        {
+          "name": "Sample Data from Table",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/sample-data/healthmeasure?limit=5",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "sample-data", "healthmeasure"],
+              "query": [
+                {"key": "limit", "value": "5"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Available Health Measures",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/measures",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "measures"]
+            }
+          }
+        },
+        {
+          "name": "Health Measure Trends",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/measure-trends?measure=obesity&years=5",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "measure-trends"],
+              "query": [
+                {"key": "measure", "value": "obesity"},
+                {"key": "years", "value": "5"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Health Measures by City and State",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/measures-by-city/Philadelphia/PA?limit=5",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "measures-by-city", "Philadelphia", "PA"],
+              "query": [
+                {"key": "limit", "value": "5"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Health Measures by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/measures-by-zipcode/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "measures-by-zipcode", "19104"]
+            }
+          }
+        },
+        {
+          "name": "Validate Health Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/validate-zipcode?zipcode=19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "validate-zipcode"],
+              "query": [
+                {"key": "zipcode", "value": "19104"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Community Health Properties by Zipcode",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/health/community/19104",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "health", "community", "19104"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search",
+      "item": [
+        {
+          "name": "Featured Cities",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/search/featured-cities?limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "search", "featured-cities"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Autocomplete Suggestions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/search/autocomplete?term=phil&limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "search", "autocomplete"],
+              "query": [
+                {"key": "term", "value": "phil"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Zipcodes by City and State",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/search/zipcodes?city=Philadelphia&state=PA",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "search", "zipcodes"],
+              "query": [
+                {"key": "city", "value": "Philadelphia"},
+                {"key": "state", "value": "PA"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cities by State",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/search/cities?state=PA&limit=20",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "search", "cities"],
+              "query": [
+                {"key": "state", "value": "PA"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "All States",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/search/states",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "search", "states"]
+            }
+          }
+        },
+        {
+          "name": "Zipcode Summaries",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/v1/search/zipcode-summaries?zipcodes=19104,19102&limit=10",
+              "host": ["http://localhost:3000"],
+              "path": ["api", "v1", "search", "zipcode-summaries"],
+              "query": [
+                {"key": "zipcodes", "value": "19104,19102"},
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+} 

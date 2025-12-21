@@ -1,0 +1,137 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "CIS 5500 Project - Group 7",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/cities/top": {
+      "get": {
+        "summary": "Get top 3 cities by metrics",
+        "description": "Returns an array of the top 3 cities, each with city name, state, population, average listing price, and average health measure.",
+        "responses": {
+          "200": {
+            "description": "Success. Returns a JSON array of the top 3 cities with their metrics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "city": {
+                        "type": "string",
+                        "example": "New York"
+                      },
+                      "state": {
+                        "type": "string",
+                        "example": "NY"
+                      },
+                      "population": {
+                        "type": "integer",
+                        "example": 12345
+                      },
+                      "avgListingPrice": {
+                        "type": "integer",
+                        "example": 123456
+                      },
+                      "avgHealthMeasure": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 0.01
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root endpoint",
+        "description": "Returns a message indicating the server is running.",
+        "responses": {
+          "200": {
+            "description": "Success. Returns a JSON message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Hello, World!"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/autocomplete-search": {
+      "get": {
+        "summary": "Autocomplete search",
+        "description": "Returns autocomplete suggestions for a given search term (e.g., zip code, city, or state).",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "searchTerm",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The term to search for autocomplete suggestions."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success. Returns an array of autocomplete suggestions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "matchType": {
+                        "type": "string",
+                        "example": "ZipCode"
+                      },
+                      "matchValue": {
+                        "type": "string",
+                        "example": 12345
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request. Search term is required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Search term is required"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {},
+  "tags": []
+}

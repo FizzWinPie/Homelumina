@@ -1,0 +1,16 @@
+{
+  "name": "cis-5500-group-7-project",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "cd server && npm run dev",
+    "start": "cd server && npm start",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.4",
+    "jest-sonar-reporter": "^2.0.0",
+    "jest-watch-typeahead": "^3.0.1",
+    "supertest": "^7.1.1"
+  }
+}
