@@ -1,14 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Users, DollarSign, Home, Heart, Shield, Flame, Baby, Building2, MapPin } from "lucide-react";
 import type { ZipCodeData } from "./types";
 import { formatCurrency, formatNumber } from "./utils";
 import { useNavigate } from "react-router";
 
-export function SummaryView({ zipCodeSummaries, currentHealthMeasure }: { 
-  zipCodeSummaries: ZipCodeData[], 
-  currentHealthMeasure: string 
+export function SummaryView({ zipCodeSummaries }: { 
+  zipCodeSummaries: ZipCodeData[]
 }) {
   const navigate = useNavigate();
   
@@ -17,22 +15,22 @@ export function SummaryView({ zipCodeSummaries, currentHealthMeasure }: {
     item.population > 0 && 
     item.medianprice !== null && 
     item.medianprice !== undefined && 
-    item.medianprice !== "" &&
+    item.medianprice > 0 &&
     item.meanincome !== null && 
     item.meanincome !== undefined && 
-    item.meanincome !== ""
+    item.meanincome > 0
   );
 
   // Calculate aggregated statistics only for valid ZIP codes
   const totalPopulation = validZipCodes.reduce((sum, item) => sum + item.population, 0);
   const avgMedianPrice = validZipCodes.length > 0 
-    ? validZipCodes.reduce((sum, item) => sum + (parseFloat(item.medianprice) || 0), 0) / validZipCodes.length 
+    ? validZipCodes.reduce((sum, item) => sum + (item.medianprice || 0), 0) / validZipCodes.length 
     : 0;
   const avgMeanIncome = validZipCodes.length > 0 
-    ? validZipCodes.reduce((sum, item) => sum + (parseFloat(item.meanincome) || 0), 0) / validZipCodes.length 
+    ? validZipCodes.reduce((sum, item) => sum + (item.meanincome || 0), 0) / validZipCodes.length 
     : 0;
   const avgHealthRatio = validZipCodes.length > 0 
-    ? validZipCodes.reduce((sum, item) => sum + (parseFloat(item.healthratio) || 0), 0) / validZipCodes.length 
+    ? validZipCodes.reduce((sum, item) => sum + (item.healthratio || 0), 0) / validZipCodes.length 
     : 0;
   
   const totalHospitals = zipCodeSummaries.reduce((sum, item) => sum + (parseInt(item.hospitalscount || "0") || 0), 0);
@@ -189,10 +187,10 @@ export function SummaryView({ zipCodeSummaries, currentHealthMeasure }: {
                   </div>
                   <div className="text-right">
                     <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {formatCurrency(parseFloat(item.medianprice) || 0)}
+                      {formatCurrency(item.medianprice || 0)}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {(parseFloat(item.healthratio) * 100).toFixed(1)}% health
+                      {((item.healthratio || 0) * 100).toFixed(1)}% health
                     </div>
                   </div>
                 </div>

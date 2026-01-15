@@ -3,12 +3,14 @@
  * Provides structured logging with different levels and environment-based configuration
  */
 
-export enum LogLevel {
-  ERROR = 0,
-  WARN = 1,
-  INFO = 2,
-  DEBUG = 3
-}
+export const LogLevel = {
+  ERROR: 0,
+  WARN: 1,
+  INFO: 2,
+  DEBUG: 3
+} as const;
+
+export type LogLevel = typeof LogLevel[keyof typeof LogLevel];
 
 interface LogEntry {
   timestamp: string;
@@ -20,7 +22,7 @@ interface LogEntry {
 }
 
 class Logger {
-  private level: LogLevel;
+  private level: number;
   private service: string;
   private version: string;
   private isDevelopment: boolean;
@@ -39,7 +41,7 @@ class Logger {
     else this.level = this.isDevelopment ? LogLevel.DEBUG : LogLevel.INFO;
   }
 
-  private shouldLog(level: LogLevel): boolean {
+  private shouldLog(level: number): boolean {
     return level <= this.level;
   }
 
@@ -54,7 +56,7 @@ class Logger {
     };
   }
 
-  private log(level: LogLevel, levelName: string, message: string, data?: any): void {
+  private log(level: number, levelName: string, message: string, data?: any): void {
     if (!this.shouldLog(level)) return;
 
     const logEntry = this.formatMessage(levelName, message, data);

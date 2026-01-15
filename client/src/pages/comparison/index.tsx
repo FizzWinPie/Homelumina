@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   MapPin,
@@ -13,7 +12,6 @@ import {
   Heart,
   Shield,
   Building2,
-  Target,
   Award,
   Zap,
   ArrowUpRight,
@@ -27,10 +25,7 @@ import {
   Frown,
   FireExtinguisher,
   Flag,
-  Moon,
-  Sun,
   Settings,
-  Grab,
   ArrowRight,
 } from "lucide-react";
 import { API_ENDPOINTS } from "@/config/api";
@@ -368,7 +363,10 @@ export function Comparison() {
         logger.warn("No data in city comparison response", { comparisonData });
       }
     } else {
-      logger.error("City comparison request failed", { status: cityComparisonData.status, reason: cityComparisonData.reason });
+      logger.error("City comparison request failed", { 
+        status: cityComparisonData.status, 
+        reason: cityComparisonData.status === 'rejected' ? cityComparisonData.reason : undefined 
+      });
     }
 
     // I am adding this entire section
@@ -428,7 +426,10 @@ export function Comparison() {
         logger.warn("No data in city comparison response 2", { comparisonData2 });
       }
     } else {
-      logger.error("City comparison request 2 failed", { status: cityComparisonData2.status, reason: cityComparisonData2.reason });
+      logger.error("City comparison request 2 failed", { 
+        status: cityComparisonData2.status, 
+        reason: cityComparisonData2.status === 'rejected' ? cityComparisonData2.reason : undefined 
+      });
     }
 
     // section on getting growth rate
@@ -446,7 +447,10 @@ export function Comparison() {
         logger.warn("No data in city similar response 1", { growthData1 });
       }
     } else {
-      logger.error("City Similar request 1 failed", { status: cityGrowthData1.status, reason: cityGrowthData1.reason });
+      logger.error("City Similar request 1 failed", { 
+        status: cityGrowthData1.status, 
+        reason: cityGrowthData1.status === 'rejected' ? cityGrowthData1.reason : undefined 
+      });
     }
 
     if (cityGrowthData2.status === "fulfilled" && cityGrowthData2.value.ok) {
@@ -460,7 +464,10 @@ export function Comparison() {
         logger.warn("No data in city Growth response 2", { growthData2 });
       }
     } else {
-      logger.error("City Similar Growth 2 failed", { status: cityGrowthData2.status, reason: cityGrowthData2.reason });
+      logger.error("City Similar Growth 2 failed", { 
+        status: cityGrowthData2.status, 
+        reason: cityGrowthData2.status === 'rejected' ? cityGrowthData2.reason : undefined 
+      });
     }
     // added end
 
@@ -482,7 +489,10 @@ export function Comparison() {
         logger.warn("No data in city similar response 1", { similarData1 });
       }
     } else {
-      logger.error("City Similar request 1 failed", { status: citySimilarData1.status, reason: citySimilarData1.reason });
+      logger.error("City Similar request 1 failed", { 
+        status: citySimilarData1.status, 
+        reason: citySimilarData1.status === 'rejected' ? citySimilarData1.reason : undefined 
+      });
     }
 
     if (citySimilarData2.status === "fulfilled" && citySimilarData2.value.ok) {
@@ -495,7 +505,10 @@ export function Comparison() {
         logger.warn("No data in city similar response 2", { similarData2 });
       }
     } else {
-      logger.error("City Similar request 2 failed", { status: citySimilarData2.status, reason: citySimilarData2.reason });
+      logger.error("City Similar request 2 failed", { 
+        status: citySimilarData2.status, 
+        reason: citySimilarData2.status === 'rejected' ? citySimilarData2.reason : undefined 
+      });
     }
 
     if (sdata && sdata2) {
@@ -510,9 +523,6 @@ export function Comparison() {
     setLoading(false);
   };
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat().format(num);
-  };
 
   const formatCurrency = (num: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -617,7 +627,7 @@ export function Comparison() {
 
   const getHealthMetricColors = (
     rate: number,
-    metricType: "obesity" | "asthma" | "depression"
+    _metricType: "obesity" | "asthma" | "depression"
   ) => {
     // For health metrics, lower rates are better (opposite of affordability)
     // We'll use a reverse scale where lower percentages get better colors
@@ -754,55 +764,56 @@ export function Comparison() {
     }
   };
 
-  const getHealthScoreColors = (score: number) => {
-    // For health score, higher is better (opposite of individual health metrics)
-    if (score >= 80) {
-      return {
-        bg: "from-green-50 to-emerald-50",
-        border: "border-green-200",
-        text: "text-green-600",
-        progressBg: "bg-green-200",
-        progressFill: "from-green-500 to-emerald-500",
-        label: "Excellent",
-      };
-    } else if (score >= 60) {
-      return {
-        bg: "from-blue-50 to-cyan-50",
-        border: "border-blue-200",
-        text: "text-blue-600",
-        progressBg: "bg-blue-200",
-        progressFill: "from-blue-500 to-cyan-500",
-        label: "Good",
-      };
-    } else if (score >= 40) {
-      return {
-        bg: "from-yellow-50 to-amber-50",
-        border: "border-yellow-200",
-        text: "text-yellow-600",
-        progressBg: "bg-yellow-200",
-        progressFill: "from-yellow-500 to-amber-500",
-        label: "Moderate",
-      };
-    } else if (score >= 20) {
-      return {
-        bg: "from-orange-50 to-red-50",
-        border: "border-orange-200",
-        text: "text-orange-600",
-        progressBg: "bg-orange-200",
-        progressFill: "from-orange-500 to-red-500",
-        label: "Poor",
-      };
-    } else {
-      return {
-        bg: "from-red-50 to-pink-50",
-        border: "border-red-200",
-        text: "text-red-600",
-        progressBg: "bg-red-200",
-        progressFill: "from-red-500 to-pink-500",
-        label: "Very Poor",
-      };
-    }
-  };
+  // Unused function - commented out
+  // const getHealthScoreColors = (score: number) => {
+  //   // For health score, higher is better (opposite of individual health metrics)
+  //   if (score >= 80) {
+  //     return {
+  //       bg: "from-green-50 to-emerald-50",
+  //       border: "border-green-200",
+  //       text: "text-green-600",
+  //       progressBg: "bg-green-200",
+  //       progressFill: "from-green-500 to-emerald-500",
+  //       label: "Excellent",
+  //     };
+  //   } else if (score >= 60) {
+  //     return {
+  //       bg: "from-blue-50 to-cyan-50",
+  //       border: "border-blue-200",
+  //       text: "text-blue-600",
+  //       progressBg: "bg-blue-200",
+  //       progressFill: "from-blue-500 to-cyan-500",
+  //       label: "Good",
+  //     };
+  //   } else if (score >= 40) {
+  //     return {
+  //       bg: "from-yellow-50 to-amber-50",
+  //       border: "border-yellow-200",
+  //       text: "text-yellow-600",
+  //       progressBg: "bg-yellow-200",
+  //       progressFill: "from-yellow-500 to-amber-500",
+  //       label: "Moderate",
+  //     };
+  //   } else if (score >= 20) {
+  //     return {
+  //       bg: "from-orange-50 to-red-50",
+  //       border: "border-orange-200",
+  //       text: "text-orange-600",
+  //       progressBg: "bg-orange-200",
+  //       progressFill: "from-orange-500 to-red-500",
+  //       label: "Poor",
+  //     };
+  //   } else {
+  //     return {
+  //       bg: "from-red-50 to-pink-50",
+  //       border: "border-red-200",
+  //       text: "text-red-600",
+  //       progressBg: "bg-red-200",
+  //       progressFill: "from-red-500 to-pink-500",
+  //       label: "Very Poor",
+  //     };
+  //   }
+  // };
 
   const assessDataQuality = () => {
     const quality = {
@@ -871,71 +882,71 @@ export function Comparison() {
     return { quality, overallScore, availabilityScore };
   };
 
-  // I added this
-  const assessDataQualityV2 = (input: CityData | null) => {
-    const quality = {
-      population: {
-        available: !!input?.population && input.population > 0,
-        complete: !!input?.population,
-        label: "Population Data",
-        description: "Demographic information",
-      },
-      health: {
-        available: !!(
-          input?.healthMeasures?.obesity ||
-          input?.healthMeasures?.asthma ||
-          input?.healthMeasures?.depression
-        ),
-        complete: !!(
-          input?.healthMeasures?.obesity &&
-          input?.healthMeasures?.asthma &&
-          input?.healthMeasures?.depression
-        ),
-        label: "Health Metrics",
-        description: "Health outcome data",
-      },
-      facilities: {
-        available: !!(
-          input?.facilities?.hospitals !== undefined ||
-          input?.facilities?.police !== undefined ||
-          input?.facilities?.fire !== undefined ||
-          input?.facilities?.childcare !== undefined
-        ),
-        complete: !!(
-          input?.facilities?.hospitals !== undefined &&
-          input?.facilities?.police !== undefined &&
-          input?.facilities?.fire !== undefined &&
-          input?.facilities?.childcare !== undefined
-        ),
-        label: "Facilities Data",
-        description: "Public service facilities",
-      },
-      realEstate: {
-        available: !!(input?.medianHomePrice && input.medianHomePrice > 0),
-        complete: !!(input?.medianHomePrice && input?.medianIncome),
-        label: "Real Estate",
-        description: "Housing and income data",
-      },
-    };
-
-    // Calculate overall quality score
-    const totalCategories = Object.keys(quality).length;
-    const availableCategories = Object.values(quality).filter(
-      (q) => q.available
-    ).length;
-    const completeCategories = Object.values(quality).filter(
-      (q) => q.complete
-    ).length;
-
-    const overallScore = Math.round(
-      (completeCategories / totalCategories) * 100
-    );
-    const availabilityScore = Math.round(
-      (availableCategories / totalCategories) * 100
-    );
-
-    return { quality, overallScore, availabilityScore };
-  };
+  // I added this - Unused function, commented out
+  // const assessDataQualityV2 = (input: CityData | null) => {
+  //   const quality = {
+  //     population: {
+  //       available: !!input?.population && input.population > 0,
+  //       complete: !!input?.population,
+  //       label: "Population Data",
+  //       description: "Demographic information",
+  //     },
+  //     health: {
+  //       available: !!(
+  //         input?.healthMeasures?.obesity ||
+  //         input?.healthMeasures?.asthma ||
+  //         input?.healthMeasures?.depression
+  //       ),
+  //       complete: !!(
+  //         input?.healthMeasures?.obesity &&
+  //         input?.healthMeasures?.asthma &&
+  //         input?.healthMeasures?.depression
+  //       ),
+  //       label: "Health Metrics",
+  //       description: "Health outcome data",
+  //     },
+  //     facilities: {
+  //       available: !!(
+  //         input?.facilities?.hospitals !== undefined ||
+  //         input?.facilities?.police !== undefined ||
+  //         input?.facilities?.fire !== undefined ||
+  //         input?.facilities?.childcare !== undefined
+  //       ),
+  //       complete: !!(
+  //         input?.facilities?.hospitals !== undefined &&
+  //         input?.facilities?.police !== undefined &&
+  //         input?.facilities?.fire !== undefined &&
+  //         input?.facilities?.childcare !== undefined
+  //       ),
+  //       label: "Facilities Data",
+  //       description: "Public service facilities",
+  //     },
+  //     realEstate: {
+  //       available: !!(input?.medianHomePrice && input.medianHomePrice > 0),
+  //       complete: !!(input?.medianHomePrice && input?.medianIncome),
+  //       label: "Real Estate",
+  //       description: "Housing and income data",
+  //     },
+  //   };
+  //
+  //   // Calculate overall quality score
+  //   const totalCategories = Object.keys(quality).length;
+  //   const availableCategories = Object.values(quality).filter(
+  //     (q) => q.available
+  //   ).length;
+  //   const completeCategories = Object.values(quality).filter(
+  //     (q) => q.complete
+  //   ).length;
+  //
+  //   const overallScore = Math.round(
+  //     (completeCategories / totalCategories) * 100
+  //   );
+  //   const availabilityScore = Math.round(
+  //     (availableCategories / totalCategories) * 100
+  //   );
+  //
+  //   return { quality, overallScore, availabilityScore };
+  // };
   // Added end
 
   const getDataQualityColors = (score: number) => {
@@ -1093,7 +1104,7 @@ export function Comparison() {
   );
 
   // Get health score colors
-  const healthScoreColors = getHealthScoreColors(healthScore);
+  // const healthScoreColors = getHealthScoreColors(healthScore); // Unused
 
   // Assess data quality
   const dataQuality = assessDataQuality();
@@ -1131,9 +1142,9 @@ export function Comparison() {
     cityData2?.facilities?.childcare || 0,
     "childcare"
   );
-  const healthScoreColors2 = getHealthScoreColors(healthScore2);
-  const dataQuality2 = assessDataQualityV2(cityData2);
-  const dataQualityColors2 = getDataQualityColors(dataQuality2.overallScore);
+  // const healthScoreColors2 = getHealthScoreColors(healthScore2); // Unused
+  // const dataQuality2 = assessDataQualityV2(cityData2); // Unused - function also unused
+  // const dataQualityColors2 = getDataQualityColors(dataQuality2.overallScore); // Unused
 
   const totalFacil1 = getTotalFacility(cityData);
   const totalFacil2 = getTotalFacility(cityData2);
@@ -1396,12 +1407,12 @@ export function Comparison() {
                           isDarkMode ? "text-blue-300" : "text-blue-600"
                         }`}
                       />
-                      {cityData?.population > cityData2?.population ? (
+                      {(cityData?.population ?? 0) > (cityData2?.population ?? 0) ? (
                         <ArrowUpRight
                           className="h-5 w-5 text-green-400"
                           aria-label="Higher Population"
                         />
-                      ) : cityData?.population < cityData2?.population ? (
+                      ) : (cityData?.population ?? 0) < (cityData2?.population ?? 0) ? (
                         <ArrowDownRight
                           className="h-5 w-5 text-red-400"
                           aria-label="Lower Population"
@@ -1424,12 +1435,12 @@ export function Comparison() {
                           isDarkMode ? "text-blue-300" : "text-blue-600"
                         }`}
                       />
-                      {cityData2?.population > cityData?.population ? (
+                      {(cityData2?.population ?? 0) > (cityData?.population ?? 0) ? (
                         <ArrowUpRight
                           className="h-5 w-5 text-green-400"
                           aria-label="Higher Population"
                         />
-                      ) : cityData2?.population < cityData?.population ? (
+                      ) : (cityData2?.population ?? 0) < (cityData?.population ?? 0) ? (
                         <ArrowDownRight
                           className="h-5 w-5 text-red-400"
                           aria-label="Lower Population"
@@ -1497,12 +1508,12 @@ export function Comparison() {
                       </span>
 
                       {/* Trend icon */}
-                      {cityData?.medianIncome > cityData2?.medianIncome ? (
+                      {(cityData?.medianIncome ?? 0) > (cityData2?.medianIncome ?? 0) ? (
                         <ArrowUpRight
                           className="h-5 w-5 text-green-400"
                           aria-label="Higher Household Income"
                         />
-                      ) : cityData?.medianIncome < cityData2?.medianIncome ? (
+                      ) : (cityData?.medianIncome ?? 0) < (cityData2?.medianIncome ?? 0) ? (
                         <ArrowDownRight
                           className="h-5 w-5 text-red-400"
                           aria-label="Lower Household Income"
@@ -1533,12 +1544,12 @@ export function Comparison() {
                       </span>
 
                       {/* Trend icon */}
-                      {cityData2?.medianIncome > cityData?.medianIncome ? (
+                      {(cityData2?.medianIncome ?? 0) > (cityData?.medianIncome ?? 0) ? (
                         <ArrowUpRight
                           className="h-5 w-5 text-green-400"
                           aria-label="Higher Household Income"
                         />
-                      ) : cityData2?.medianIncome < cityData?.medianIncome ? (
+                      ) : (cityData2?.medianIncome ?? 0) < (cityData?.medianIncome ?? 0) ? (
                         <ArrowDownRight
                           className="h-5 w-5 text-red-400"
                           aria-label="Lower Household Income"
@@ -1602,14 +1613,14 @@ export function Comparison() {
                           : "N/A"}
                       </span>
                       {/* Example trend: up */}
-                      {cityData?.medianHomePrice >
-                      cityData2?.medianHomePrice ? (
+                      {(cityData?.medianHomePrice ?? 0) >
+                      (cityData2?.medianHomePrice ?? 0) ? (
                         <ArrowUpRight
                           className="h-5 w-5 text-green-400"
                           aria-label="Higher home price"
                         />
-                      ) : cityData?.medianHomePrice <
-                        cityData2?.medianHomePrice ? (
+                      ) : (cityData?.medianHomePrice ?? 0) <
+                        (cityData2?.medianHomePrice ?? 0) ? (
                         <ArrowDownRight
                           className="h-5 w-5 text-red-400"
                           aria-label="Lower home price"
@@ -1636,14 +1647,14 @@ export function Comparison() {
                           : "N/A"}
                       </span>
                       {/* Trend logic for HomePrice */}
-                      {cityData2?.medianHomePrice >
-                      cityData?.medianHomePrice ? (
+                      {(cityData2?.medianHomePrice ?? 0) >
+                      (cityData?.medianHomePrice ?? 0) ? (
                         <ArrowUpRight
                           className="h-5 w-5 text-green-400"
                           aria-label="Higher home price"
                         />
-                      ) : cityData2?.medianHomePrice <
-                        cityData?.medianHomePrice ? (
+                      ) : (cityData2?.medianHomePrice ?? 0) <
+                        (cityData?.medianHomePrice ?? 0) ? (
                         <ArrowDownRight
                           className="h-5 w-5 text-red-400"
                           aria-label="Lower home price"
@@ -1974,38 +1985,38 @@ export function Comparison() {
                 }`}
               >
                 <li>
-                  {cityData?.population > cityData2?.population
-                    ? `${cityData.city}, ${cityData.state} has a higher population than ${cityData2.city}, ${cityData2.state}`
-                    : cityData?.population < cityData2?.population
-                    ? `${cityData2.city}, ${cityData2.state} has a higher population than ${cityData.city}, ${cityData.state}`
+                  {(cityData?.population ?? 0) > (cityData2?.population ?? 0)
+                    ? `${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''} has a higher population than ${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''}`
+                    : (cityData?.population ?? 0) < (cityData2?.population ?? 0)
+                    ? `${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''} has a higher population than ${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''}`
                     : `Both cities have the same population`}
                 </li>
                 <li>
-                  {cityData?.medianIncome > cityData2?.medianIncome
-                    ? `${cityData.city}, ${cityData.state} has a higher Median Household  Income than ${cityData2.city}, ${cityData2.state}`
-                    : cityData?.medianIncome < cityData2?.medianIncome
-                    ? `${cityData2.city}, ${cityData2.state} has a higher Median Household  Income than ${cityData.city}, ${cityData.state}`
+                  {(cityData?.medianIncome ?? 0) > (cityData2?.medianIncome ?? 0)
+                    ? `${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''} has a higher Median Household  Income than ${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''}`
+                    : (cityData?.medianIncome ?? 0) < (cityData2?.medianIncome ?? 0)
+                    ? `${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''} has a higher Median Household  Income than ${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''}`
                     : `Both cities have the same Household Income`}
                 </li>
                 <li>
-                  {cityData?.medianHomePrice < cityData2?.medianHomePrice
-                    ? `${cityData.city}, ${cityData.state} has a lower Median Home Price than ${cityData2.city}, ${cityData2.state}`
-                    : cityData?.medianHomePrice > cityData2?.medianHomePrice
-                    ? `${cityData2.city}, ${cityData2.state} has a higher Median Home Price than ${cityData.city}, ${cityData.state}`
+                  {(cityData?.medianHomePrice ?? 0) < (cityData2?.medianHomePrice ?? 0)
+                    ? `${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''} has a lower Median Home Price than ${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''}`
+                    : (cityData?.medianHomePrice ?? 0) > (cityData2?.medianHomePrice ?? 0)
+                    ? `${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''} has a higher Median Home Price than ${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''}`
                     : `Both cities have the same Household Income`}
                 </li>
                 <li>
                   {healthScore > healthScore2
-                    ? `${cityData.city}, ${cityData.state} has a better Population Health Score than ${cityData2.city}, ${cityData2.state}`
+                    ? `${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''} has a better Population Health Score than ${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''}`
                     : healthScore < healthScore2
-                    ? `${cityData2.city}, ${cityData2.state} has a better Population Health Score than ${cityData.city}, ${cityData.state}`
+                    ? `${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''} has a better Population Health Score than ${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''}`
                     : `Both cities have the same Household Income`}
                 </li>
                 <li>
                   {totalFacil1 > totalFacil2
-                    ? `${cityData.city}, ${cityData.state} has more social facilites than ${cityData2.city}, ${cityData2.state}`
+                    ? `${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''} has more social facilites than ${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''}`
                     : totalFacil1 < totalFacil2
-                    ? `${cityData2.city}, ${cityData2.state} has more social facilites than ${cityData.city}, ${cityData.state}`
+                    ? `${cityData2?.city ?? 'City 2'}, ${cityData2?.state ?? ''} has more social facilites than ${cityData?.city ?? 'City 1'}, ${cityData?.state ?? ''}`
                     : `Both cities have the same Household Income`}
                 </li>
               </ul>

@@ -29,7 +29,7 @@ A Node.js Express server for the CIS 5500 project with PostgreSQL database conne
    DB_PASSWORD=your-secure-password
    NODE_ENV=development
 
-   MONGO_URI=ask_john
+   MONGODB_URI=ask_john
    ```
 
 3. Run the server:

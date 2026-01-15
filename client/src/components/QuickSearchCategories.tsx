@@ -1,9 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Home, Building2, School, Heart, Shield } from "lucide-react";
+import { Home, Building2, School, Heart, Shield } from "lucide-react";
 import { useNavigate } from "react-router";
-import { useState } from "react";
 
 const categories = [
   {

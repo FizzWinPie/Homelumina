@@ -12,7 +12,6 @@ import {
   Heart,
   Building2,
   School,
-  Car,
   TreePine
 } from "lucide-react";
 

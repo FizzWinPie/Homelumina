@@ -1,18 +1,16 @@
-const mongoose = require('mongoose');
-const { logger } = require('../utils/logger');
-require('dotenv').config();
+const mongoose = require("mongoose");
+const { logger } = require("../utils/logger");
+require("dotenv").config();
 
 // Validate required environment variables (skip validation in test environment)
-const requiredEnvVars = ['MONGODB_URI'];
-const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+const requiredEnvVars = ["MONGODB_URI"];
+const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
 // Skip validation in test environment to allow mocking
-if (missingVars.length > 0 && process.env.NODE_ENV !== 'test') {
-  logger.error('Missing required environment variables:', { missingVars });
-  logger.error('Please include MongoDB URI in your .env file:', {
-    requiredVars: [
-      'DB_HOST=MONGODB_URI-database-host',
-    ]
+if (missingVars.length > 0 && process.env.NODE_ENV !== "test") {
+  logger.error("Missing required environment variables:", { missingVars });
+  logger.error("Please include MongoDB URI in your .env file:", {
+    requiredVars: ["MONGODB_URI=your-mongodb-connection-string"],
   });
   process.exit(1);
 }
@@ -25,9 +23,9 @@ const connectToMongo = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    logger.info('MongoDB connected');
+    logger.info("MongoDB connected");
   } catch (err) {
-    logger.error('MongoDB connection error:', err);
+    logger.error("MongoDB connection error:", err);
     process.exit(1);
   }
 };
@@ -36,14 +34,14 @@ const connectToMongo = async () => {
 connectToMongo();
 
 // Handle graceful shutdown
-process.on('SIGINT', async () => {
-  logger.info('SIGINT received: closing MongoDB connection');
+process.on("SIGINT", async () => {
+  logger.info("SIGINT received: closing MongoDB connection");
   await mongoose.disconnect();
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received: closing MongoDB connection');
+process.on("SIGTERM", async () => {
+  logger.info("SIGTERM received: closing MongoDB connection");
   await mongoose.disconnect();
   process.exit(0);
 });

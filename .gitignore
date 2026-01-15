@@ -69,3 +69,7 @@ dist-ssr
 *.sln
 *.sw?
 *.mp4
+*.pptx
+*.pdf
+document/
+preprocessing/

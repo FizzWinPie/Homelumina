@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { Star, MapPin, DollarSign, Loader2, TrendingUp, Award, Home, Heart, Shield } from "lucide-react";
+import { Star, MapPin, DollarSign, Loader2, TrendingUp, Home, Heart, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { API_CONFIG } from "@/config/api";
 import { logger } from "@/utils/logger";
@@ -188,7 +188,6 @@ export function FeaturedLocations({ isDarkMode = false }: FeaturedLocationsProps
     const rankNum = parseInt(rank);
     if (isNaN(rankNum)) return { text: 'N/A', color: 'gray', quality: 'Unknown' };
     
-    let quality;
     if (rankNum <= 100) {
       return { text: `Top ${rankNum}`, color: 'green', quality: 'Exceptional' };
     } else if (rankNum <= 500) {

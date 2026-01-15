@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, ArrowDownRight, Info, Stethoscope, Flame, Baby, Activity, Wind, Frown, Filter, MapPin, Award, Users, DollarSign, Home, Heart, Building2, Shield, Star, Zap, ArrowLeft } from "lucide-react";
+import { Info, Stethoscope, Flame, Baby, Activity, Wind, Frown, Filter, MapPin, Award, Users, DollarSign, Home, Heart, Building2, Shield, Star, Zap, ArrowLeft } from "lucide-react";
 import { API_ENDPOINTS } from "@/config/api";
 import { useNavigate } from "react-router";
 import type { ReactNode } from "react";

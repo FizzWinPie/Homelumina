@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { useNavigate } from "react-router";
 import { auth, checkFirebaseConfig } from "@/lib/firebase";
-import { Loader2, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { logger } from "@/utils/logger";
 
 export function ForgotPassword() {

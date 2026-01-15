@@ -336,7 +336,7 @@ export function SearchResults() {
           viewMode === "map" ? (
             <MapView zipCodeSummaries={currentItems} currentHealthMeasure={debouncedFilters.healthMeasure} />
           ) : viewMode === "summary" ? (
-            <SummaryView zipCodeSummaries={currentItems} currentHealthMeasure={debouncedFilters.healthMeasure} />
+            <SummaryView zipCodeSummaries={currentItems} />
           ) : (
             <ListView zipCodeSummaries={currentItems} currentHealthMeasure={debouncedFilters.healthMeasure} />
           ) 
