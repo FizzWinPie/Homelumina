@@ -72,3 +72,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw? 
+
+# files
+secrets/*
