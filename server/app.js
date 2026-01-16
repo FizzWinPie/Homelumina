@@ -4,6 +4,8 @@ const pool = require("./config/database");
 const ResponseUtils = require("./utils/responseUtils");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 // Generate Swagger spec
 const swaggerOptions = {
@@ -50,6 +52,8 @@ const adminRoutes = require("./routes/adminRoutes");
 const createApp = () => {
   const app = express();
 
+  app.set('trust proxy', 1);  // Trust proxy for EC2/Nginx
+
   // CORS configuration
   const corsOptions = {
     origin: function (origin, callback) {
@@ -84,22 +88,20 @@ const createApp = () => {
     optionsSuccessStatus: 200,
   };
 
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per window
+    message: "Too many requests from this IP, please try again after 15 minutes",
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  });  
+
   // Apply middleware in order
+  app.use(helmet()); // Security headers
   app.use(cors(corsOptions));
+  app.use(limiter); // Rate limiting
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-  // Security headers
-  app.use((req, res, next) => {
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "DENY");
-    res.setHeader("X-XSS-Protection", "1; mode=block");
-    res.setHeader(
-      "Strict-Transport-Security",
-      "max-age=31536000; includeSubDomains"
-    );
-    next();
-  });
 
   // Request logging and performance monitoring
   app.use(requestLogger);
