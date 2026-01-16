@@ -20,8 +20,8 @@ const mongoUri = process.env.MONGODB_URI;
 const connectToMongo = async () => {
   try {
     await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      // useNewUrlParser: true,
+      // useUnifiedTopology: true,
     });
     logger.info("MongoDB connected");
   } catch (err) {
