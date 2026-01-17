@@ -25,3 +25,4 @@ sleep 2
 pm2 status
 
 echo "✅ Deployment completed successfully!"
+pm2 logs homelumina-backend --lines 20
