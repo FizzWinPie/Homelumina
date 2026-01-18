@@ -253,8 +253,8 @@ if (require.main === module) {
   process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
-  app.listen(PORT, () => {
-    const HOST = process.env.HOST || "localhost";
+  const HOST = process.env.HOST || "localhost";
+  app.listen(PORT, HOST, () => {
     const PROTOCOL = process.env.NODE_ENV === "production" ? "https" : "http";
 
     logger.info(`Server is running on ${PROTOCOL}://${HOST}:${PORT}`);
