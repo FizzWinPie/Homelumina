@@ -66,7 +66,7 @@ const createApp = () => {
         "http://localhost:3000",
         "http://127.0.0.1:8080",
         "http://127.0.0.1:3000",
-        "http://www.homelumina.online", // GoDaddy domain
+        "https://www.homelumina.online", // GoDaddy domain
         "https://homelumina.online",    // GoDaddy domain
         process.env.FRONTEND_URL || null,
       ].filter(Boolean);
