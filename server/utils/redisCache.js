@@ -1,5 +1,6 @@
 const { getRedisClient } = require("../config/redis");
 const logger = require("./logger").logger;
+const { recordCacheHit, recordCacheMiss } = require("./metrics");
 
 const DEFAULT_TTL_SECONDS = 60 * 60; // 1 hour
 
@@ -15,6 +16,7 @@ async function incrHit(key) {
     const redis = await getRedisClient();
     const category = categoryFromKey(key);
     await redis.incr(`stats:cache_hits:${category}`);
+    recordCacheHit(category);
   } catch (err) {
     logger.warn("Redis INCR hit failed", { key, err: err.message });
   }
@@ -25,6 +27,7 @@ async function incrMiss(key) {
     const redis = await getRedisClient();
     const category = categoryFromKey(key);
     await redis.incr(`stats:cache_misses:${category}`);
+    recordCacheMiss(category);
   } catch (err) {
     logger.warn("Redis INCR miss failed", { key, err: err.message });
   }

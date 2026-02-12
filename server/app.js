@@ -39,6 +39,11 @@ const {
   versionValidation,
   getVersionInfo,
 } = require("./middlewareLib/versioning");
+const {
+  metricsMiddleware,
+  getMetrics,
+  getContentType,
+} = require("./utils/metrics");
 
 // Import enhanced routes
 const facilitiesRoutes = require("./routes/facilitiesRoutes");
@@ -52,7 +57,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const createApp = () => {
   const app = express();
 
-  app.set('trust proxy', 1);  // Trust proxy for EC2/Nginx
+  app.set("trust proxy", 1); // Trust proxy for EC2/Nginx
 
   // CORS configuration
   const corsOptions = {
@@ -67,7 +72,7 @@ const createApp = () => {
         "http://127.0.0.1:8080",
         "http://127.0.0.1:3000",
         "https://www.homelumina.online", // GoDaddy domain
-        "https://homelumina.online",    // GoDaddy domain
+        "https://homelumina.online", // GoDaddy domain
         process.env.FRONTEND_URL || null,
       ].filter(Boolean);
 
@@ -93,10 +98,12 @@ const createApp = () => {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per window
-    message: "Too many requests from this IP, please try again after 15 minutes",
+    message:
+      "Too many requests from this IP, please try again after 15 minutes",
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  });  
+    skip: (req) => req.path === "/metrics", // Don't count Prometheus scrapes
+  });
 
   // Apply middleware in order
   app.use(helmet()); // Security headers
@@ -108,6 +115,7 @@ const createApp = () => {
   // Request logging and performance monitoring
   app.use(requestLogger);
   app.use(performanceMonitor);
+  app.use(metricsMiddleware); // Prometheus HTTP metrics
 
   // API versioning middleware
   app.use(versionDetection);
@@ -124,6 +132,7 @@ const createApp = () => {
     const endpoints = {
       v1: "/api/v1/*",
       health: "/health",
+      metrics: "/metrics",
     };
 
     res.json(
@@ -138,6 +147,18 @@ const createApp = () => {
         version: "3.0.0",
       })
     );
+  });
+
+  // Prometheus metrics (no versioning; exclude from rate limit via skip above)
+  app.get("/metrics", async (req, res) => {
+    try {
+      res.set("Content-Type", getContentType());
+      const metrics = await getMetrics();
+      res.send(metrics);
+    } catch (err) {
+      logger.error("Metrics endpoint error", { error: err.message });
+      res.status(500).end();
+    }
   });
 
   // API Version 1 Routes
