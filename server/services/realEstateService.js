@@ -1,5 +1,6 @@
-const realEstateRepository = require('../repositories/realEstateRepository');
-const { logger } = require('../utils/logger');
+const realEstateRepository = require("../repositories/realEstateRepository");
+const { logger } = require("../utils/logger");
+const { getCached, setCached } = require("../utils/redisCache");
 
 /**
  * Real Estate Service
@@ -26,7 +27,10 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with highest prices
    */
   static async getHighestPrices(limit = 10, dateMonth) {
-    const data = await realEstateRepository.getHighestMedianHomePrices(limit, dateMonth);
+    const data = await realEstateRepository.getHighestMedianHomePrices(
+      limit,
+      dateMonth
+    );
     return { success: true, data };
   }
 
@@ -47,7 +51,10 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with prices by ZIP code range
    */
   static async getPricesByZipcodeRange(minZipcode, maxZipcode) {
-    const data = await realEstateRepository.getRealEstatePricesByZipcodeRange(minZipcode, maxZipcode);
+    const data = await realEstateRepository.getRealEstatePricesByZipcodeRange(
+      minZipcode,
+      maxZipcode
+    );
     return { success: true, data };
   }
 
@@ -57,7 +64,9 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with real estate statistics
    */
   static async getStatisticsByZipcode(zipcode) {
-    const data = await realEstateRepository.getRealEstateStatsByZipcode(zipcode);
+    const data = await realEstateRepository.getRealEstateStatsByZipcode(
+      zipcode
+    );
     return { success: true, data };
   }
 
@@ -68,7 +77,10 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with affordable housing options
    */
   static async getAffordableHousing(maxPrice = 300000, limit = 10) {
-    const data = await realEstateRepository.getAffordableHousingOptions(maxPrice, limit);
+    const data = await realEstateRepository.getAffordableHousingOptions(
+      maxPrice,
+      limit
+    );
     return { success: true, data };
   }
 
@@ -80,8 +92,18 @@ class RealEstateService {
    * @param {number} limit - Number of results to return
    * @returns {Promise<Object>} Formatted response with affordable ZIP codes
    */
-  static async getAffordableZipCodesByCity(maxPrice = 300000, city, state, limit = 10) {
-    const data = await realEstateRepository.getAffordableZipCodesByCity(maxPrice, city, state, limit);
+  static async getAffordableZipCodesByCity(
+    maxPrice = 300000,
+    city,
+    state,
+    limit = 10
+  ) {
+    const data = await realEstateRepository.getAffordableZipCodesByCity(
+      maxPrice,
+      city,
+      state,
+      limit
+    );
     return { success: true, data };
   }
 
@@ -103,12 +125,15 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with search results
    */
   static async searchProperties(filters) {
-    logger.debug('Entered realEstateService.searchProperties', { filters });
+    logger.debug("Entered realEstateService.searchProperties", { filters });
     try {
       const data = await realEstateRepository.searchProperties(filters);
       return { success: true, data };
     } catch (error) {
-      logger.error('Error in realEstateService.searchProperties', { error: error.message, filters });
+      logger.error("Error in realEstateService.searchProperties", {
+        error: error.message,
+        filters,
+      });
       throw error;
     }
   }
@@ -119,8 +144,14 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with price trends
    */
   static async getPriceTrends(zipcode) {
+    const cacheKey = `price-trends:${zipcode}`;
+    const redisCached = await getCached(cacheKey);
+    if (redisCached) return redisCached;
+
     const data = await realEstateRepository.getPriceTrendsByZipcode(zipcode);
-    return { success: true, data };
+    const result = { success: true, data };
+    await setCached(cacheKey, result);
+    return result;
   }
 
   /**
@@ -130,7 +161,10 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with luxury housing options
    */
   static async getLuxuryHousing(minPrice = 500000, limit = 10) {
-    const data = await realEstateRepository.getLuxuryHousingOptions(minPrice, limit);
+    const data = await realEstateRepository.getLuxuryHousingOptions(
+      minPrice,
+      limit
+    );
     return { success: true, data };
   }
 
@@ -151,7 +185,10 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with highest median home prices
    */
   static async getHighestMedianHomePrices(limit = 10, dateMonth) {
-    const data = await realEstateRepository.getHighestMedianHomePrices(limit, dateMonth);
+    const data = await realEstateRepository.getHighestMedianHomePrices(
+      limit,
+      dateMonth
+    );
     return { success: true, data };
   }
 
@@ -162,7 +199,10 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with lowest home prices by city
    */
   static async getLowestHomePricesByCity(city, limit = 10) {
-    const data = await realEstateRepository.getLowestHomePricesByCity(city, limit);
+    const data = await realEstateRepository.getLowestHomePricesByCity(
+      city,
+      limit
+    );
     return { success: true, data };
   }
 
@@ -183,7 +223,11 @@ class RealEstateService {
    * @returns {Promise<Object>} Formatted response with lowest median home price ZIP code
    */
   static async getZipcodeWithLowestMedianHomePriceInCity(city, state) {
-    const data = await realEstateRepository.getZipcodeWithLowestMedianHomePriceInCity(city, state);
+    const data =
+      await realEstateRepository.getZipcodeWithLowestMedianHomePriceInCity(
+        city,
+        state
+      );
     return { success: true, data };
   }
 
@@ -216,4 +260,4 @@ class RealEstateService {
   }
 }
 
-module.exports = RealEstateService; 
+module.exports = RealEstateService;

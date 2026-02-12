@@ -19,6 +19,7 @@
     "generate:types": "openapi-typescript ./swagger.json --output ../client/src/types/server.d.ts"
   },
   "dependencies": {
+    "axios": "^1.7.9",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.18.2",
@@ -28,11 +29,11 @@
     "mongoose": "^8.16.5",
     "node-cache": "^5.1.2",
     "pg": "^8.11.3",
+    "redis": "^5.10.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1",
-    "winston": "^3.11.0",
-    "axios": "^1.7.9"
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",

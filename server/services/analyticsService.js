@@ -1,5 +1,6 @@
-const analyticsRepository = require('../repositories/analyticsRepository');
-const { createServiceError } = require('../utils/errorUtils');
+const analyticsRepository = require("../repositories/analyticsRepository");
+const { createServiceError } = require("../utils/errorUtils");
+const { getCached, setCached } = require("../utils/redisCache");
 
 /**
  * Analytics Service
@@ -18,15 +19,18 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (!city || city.trim().length === 0) {
-        throw new Error('City parameter is required');
+        throw new Error("City parameter is required");
       }
 
       if (minRating < 0 || minRating > 5) {
-        throw new Error('Minimum rating must be between 0 and 5');
+        throw new Error("Minimum rating must be between 0 and 5");
       }
 
       // Get data from repository
-      const stats = await analyticsRepository.getAverageChildcareByCriteria(city, minRating);
+      const stats = await analyticsRepository.getAverageChildcareByCriteria(
+        city,
+        minRating
+      );
 
       // Business logic: Format response
       const formattedStats = {
@@ -36,15 +40,15 @@ class AnalyticsService {
         averageLongitude: parseFloat(stats.avg_longitude || 0).toFixed(6),
         averageRating: parseFloat(stats.avg_rating || 0).toFixed(2),
         minRatingFilter: minRating,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       return {
         success: true,
-        data: formattedStats
+        data: formattedStats,
       };
     } catch (error) {
-      throw createServiceError('getAverageChildcareByCriteria', error);
+      throw createServiceError("getAverageChildcareByCriteria", error);
     }
   }
 
@@ -57,19 +61,23 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (!zipcode || zipcode.length !== 5) {
-        throw new Error('Invalid ZIP code format');
+        throw new Error("Invalid ZIP code format");
       }
 
       // Get data from repository
-      const facilitiesCount = await analyticsRepository.getFacilitiesCountByType(zipcode);
+      const facilitiesCount =
+        await analyticsRepository.getFacilitiesCountByType(zipcode);
 
       // Business logic: Format response
-      const formattedCounts = facilitiesCount.map(facility => ({
+      const formattedCounts = facilitiesCount.map((facility) => ({
         type: facility.type,
-        count: parseInt(facility.count || 0)
+        count: parseInt(facility.count || 0),
       }));
 
-      const totalFacilities = formattedCounts.reduce((sum, facility) => sum + facility.count, 0);
+      const totalFacilities = formattedCounts.reduce(
+        (sum, facility) => sum + facility.count,
+        0
+      );
 
       return {
         success: true,
@@ -77,11 +85,11 @@ class AnalyticsService {
           zipcode,
           facilities: formattedCounts,
           totalFacilities,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
-      throw createServiceError('getFacilitiesCountByType', error);
+      throw createServiceError("getFacilitiesCountByType", error);
     }
   }
 
@@ -94,11 +102,13 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (!zipcode || zipcode.length !== 5) {
-        throw new Error('Invalid ZIP code format');
+        throw new Error("Invalid ZIP code format");
       }
 
       // Get data from repository
-      const populationData = await analyticsRepository.getPopulationByZipcode(zipcode);
+      const populationData = await analyticsRepository.getPopulationByZipcode(
+        zipcode
+      );
 
       if (!populationData) {
         return {
@@ -108,8 +118,8 @@ class AnalyticsService {
             population: 0,
             city: null,
             state: null,
-            message: 'No population data available for this ZIP code'
-          }
+            message: "No population data available for this ZIP code",
+          },
         };
       }
 
@@ -119,15 +129,15 @@ class AnalyticsService {
         population: parseInt(populationData.population || 0),
         city: populationData.city,
         state: populationData.state,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       return {
         success: true,
-        data: formattedData
+        data: formattedData,
       };
     } catch (error) {
-      throw createServiceError('getPopulationByZipcode', error);
+      throw createServiceError("getPopulationByZipcode", error);
     }
   }
 
@@ -140,18 +150,19 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (!zipcode || zipcode.length !== 5) {
-        throw new Error('Invalid ZIP code format');
+        throw new Error("Invalid ZIP code format");
       }
 
       // Get data from repository
-      const healthMeasures = await analyticsRepository.getHealthMeasuresByZipcode(zipcode);
+      const healthMeasures =
+        await analyticsRepository.getHealthMeasuresByZipcode(zipcode);
 
       // Business logic: Format response
-      const formattedMeasures = healthMeasures.map(measure => ({
+      const formattedMeasures = healthMeasures.map((measure) => ({
         healthMeasure: measure.health_measure,
         value: parseFloat(measure.value || 0),
         unit: measure.unit,
-        year: parseInt(measure.year || 0)
+        year: parseInt(measure.year || 0),
       }));
 
       // Business logic: Group by health measure
@@ -164,11 +175,11 @@ class AnalyticsService {
           measures: formattedMeasures,
           groupedMeasures,
           totalMeasures: formattedMeasures.length,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
-      throw createServiceError('getHealthMeasuresByZipcode', error);
+      throw createServiceError("getHealthMeasuresByZipcode", error);
     }
   }
 
@@ -181,48 +192,66 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (!zipcode || zipcode.length !== 5) {
-        throw new Error('Invalid ZIP code format');
+        throw new Error("Invalid ZIP code format");
       }
 
       // Get data from repository
-      const analyticsData = await analyticsRepository.getComprehensiveAnalyticsByZipcode(zipcode);
+      const analyticsData =
+        await analyticsRepository.getComprehensiveAnalyticsByZipcode(zipcode);
 
       // Business logic: Format response
       const formattedData = {
         zipcode: analyticsData.zipcode,
         facilities: {
-          counts: analyticsData.facilitiesCount.map(f => ({
+          counts: analyticsData.facilitiesCount.map((f) => ({
             type: f.type,
-            count: parseInt(f.count || 0)
+            count: parseInt(f.count || 0),
           })),
-          total: analyticsData.facilitiesCount.reduce((sum, f) => sum + parseInt(f.count || 0), 0)
+          total: analyticsData.facilitiesCount.reduce(
+            (sum, f) => sum + parseInt(f.count || 0),
+            0
+          ),
         },
-        population: analyticsData.population ? {
-          population: parseInt(analyticsData.population.population || 0),
-          city: analyticsData.population.city,
-          state: analyticsData.population.state
-        } : null,
-        healthMeasures: analyticsData.healthMeasures.map(measure => ({
+        population: analyticsData.population
+          ? {
+              population: parseInt(analyticsData.population.population || 0),
+              city: analyticsData.population.city,
+              state: analyticsData.population.state,
+            }
+          : null,
+        healthMeasures: analyticsData.healthMeasures.map((measure) => ({
           healthMeasure: measure.health_measure,
           value: parseFloat(measure.value || 0),
           unit: measure.unit,
-          year: parseInt(measure.year || 0)
+          year: parseInt(measure.year || 0),
         })),
-        realEstate: analyticsData.realEstateStats ? {
-          totalProperties: parseInt(analyticsData.realEstateStats.total_properties || 0),
-          averagePrice: parseFloat(analyticsData.realEstateStats.avg_price || 0).toFixed(2),
-          minPrice: parseFloat(analyticsData.realEstateStats.min_price || 0),
-          maxPrice: parseFloat(analyticsData.realEstateStats.max_price || 0)
-        } : null,
-        timestamp: new Date().toISOString()
+        realEstate: analyticsData.realEstateStats
+          ? {
+              totalProperties: parseInt(
+                analyticsData.realEstateStats.total_properties || 0
+              ),
+              averagePrice: parseFloat(
+                analyticsData.realEstateStats.avg_price || 0
+              ).toFixed(2),
+              minPrice: parseFloat(
+                analyticsData.realEstateStats.min_price || 0
+              ),
+              maxPrice: parseFloat(
+                analyticsData.realEstateStats.max_price || 0
+              ),
+            }
+          : null,
+        timestamp: new Date().toISOString(),
       };
 
       return {
         success: true,
-        data: formattedData
+        data: formattedData,
       };
     } catch (error) {
-      throw new Error(`Service error in getComprehensiveAnalyticsByZipcode: ${error.message}`);
+      throw new Error(
+        `Service error in getComprehensiveAnalyticsByZipcode: ${error.message}`
+      );
     }
   }
 
@@ -235,31 +264,35 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (!cities || !Array.isArray(cities) || cities.length === 0) {
-        throw new Error('Cities array is required and must not be empty');
+        throw new Error("Cities array is required and must not be empty");
       }
 
       if (cities.length > 10) {
-        throw new Error('Maximum 10 cities can be compared at once');
+        throw new Error("Maximum 10 cities can be compared at once");
       }
 
       // Validate each city name
-      cities.forEach(city => {
+      cities.forEach((city) => {
         if (!city || city.trim().length === 0) {
-          throw new Error('All city names must be non-empty');
+          throw new Error("All city names must be non-empty");
         }
       });
 
       // Get data from repository
-      const comparisonData = await analyticsRepository.getCityComparisonData(cities);
+      const comparisonData = await analyticsRepository.getCityComparisonData(
+        cities
+      );
 
       // Business logic: Format response
-      const formattedData = comparisonData.map(city => ({
+      const formattedData = comparisonData.map((city) => ({
         city: city.city,
         state: city.state,
         zipcodeCount: parseInt(city.zipcode_count || 0),
         averagePopulation: parseFloat(city.avg_population || 0).toFixed(0),
         propertyCount: parseInt(city.property_count || 0),
-        averagePropertyPrice: parseFloat(city.avg_property_price || 0).toFixed(2)
+        averagePropertyPrice: parseFloat(city.avg_property_price || 0).toFixed(
+          2
+        ),
       }));
 
       return {
@@ -267,11 +300,13 @@ class AnalyticsService {
         data: {
           cities: formattedData,
           totalCities: formattedData.length,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
-      throw new Error(`Service error in getCityComparisonData: ${error.message}`);
+      throw new Error(
+        `Service error in getCityComparisonData: ${error.message}`
+      );
     }
   }
 
@@ -284,20 +319,25 @@ class AnalyticsService {
   async getTopFacilitiesByRating(facilityType, limit = 10) {
     try {
       // Business logic: Validate input
-      const validTypes = ['childcare', 'hospital', 'police', 'firefighter'];
+      const validTypes = ["childcare", "hospital", "police", "firefighter"];
       if (!validTypes.includes(facilityType)) {
-        throw new Error(`Invalid facility type. Must be one of: ${validTypes.join(', ')}`);
+        throw new Error(
+          `Invalid facility type. Must be one of: ${validTypes.join(", ")}`
+        );
       }
 
       if (limit < 1 || limit > 50) {
-        throw new Error('Limit must be between 1 and 50');
+        throw new Error("Limit must be between 1 and 50");
       }
 
       // Get data from repository
-      const facilities = await analyticsRepository.getTopFacilitiesByRating(facilityType, limit);
+      const facilities = await analyticsRepository.getTopFacilitiesByRating(
+        facilityType,
+        limit
+      );
 
       // Business logic: Format response
-      const formattedFacilities = facilities.map(facility => ({
+      const formattedFacilities = facilities.map((facility) => ({
         id: facility.id,
         name: facility.name,
         address: facility.address,
@@ -305,9 +345,9 @@ class AnalyticsService {
         zipcode: facility.zipcode,
         location: {
           latitude: parseFloat(facility.latitude),
-          longitude: parseFloat(facility.longitude)
+          longitude: parseFloat(facility.longitude),
         },
-        facilityType: facility.facility_type
+        facilityType: facility.facility_type,
       }));
 
       return {
@@ -317,11 +357,13 @@ class AnalyticsService {
           facilities: formattedFacilities,
           totalCount: formattedFacilities.length,
           requestedLimit: limit,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
-      throw new Error(`Service error in getTopFacilitiesByRating: ${error.message}`);
+      throw new Error(
+        `Service error in getTopFacilitiesByRating: ${error.message}`
+      );
     }
   }
 
@@ -339,8 +381,8 @@ class AnalyticsService {
           data: {
             zipcode,
             isValid: false,
-            reason: 'Invalid ZIP code format'
-          }
+            reason: "Invalid ZIP code format",
+          },
         };
       }
 
@@ -352,8 +394,10 @@ class AnalyticsService {
         data: {
           zipcode,
           isValid: hasData,
-          reason: hasData ? 'ZIP code has analytics data' : 'No analytics data found in ZIP code'
-        }
+          reason: hasData
+            ? "ZIP code has analytics data"
+            : "No analytics data found in ZIP code",
+        },
       };
     } catch (error) {
       throw new Error(`Service error in validateZipcode: ${error.message}`);
@@ -368,7 +412,7 @@ class AnalyticsService {
   groupHealthMeasuresByType(measures) {
     const grouped = {};
 
-    measures.forEach(measure => {
+    measures.forEach((measure) => {
       if (!grouped[measure.healthMeasure]) {
         grouped[measure.healthMeasure] = [];
       }
@@ -376,7 +420,7 @@ class AnalyticsService {
     });
 
     // Sort each group by year (descending)
-    Object.keys(grouped).forEach(key => {
+    Object.keys(grouped).forEach((key) => {
       grouped[key].sort((a, b) => b.year - a.year);
     });
 
@@ -392,11 +436,12 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (limit < 1 || limit > 100) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error("Limit must be between 1 and 100");
       }
 
       // Get data from repository
-      const underservedZipcodes = await analyticsRepository.getUnderservedZipcodes(limit);
+      const underservedZipcodes =
+        await analyticsRepository.getUnderservedZipcodes(limit);
 
       return {
         success: true,
@@ -404,11 +449,13 @@ class AnalyticsService {
         metadata: {
           totalCount: underservedZipcodes.length,
           requestedLimit: limit,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
-      throw new Error(`Service error in getUnderservedZipcodes: ${error.message}`);
+      throw new Error(
+        `Service error in getUnderservedZipcodes: ${error.message}`
+      );
     }
   }
 
@@ -420,11 +467,11 @@ class AnalyticsService {
   async getGrowthLeaders(limit = 10) {
     try {
       if (limit < 1 || limit > 100) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error("Limit must be between 1 and 100");
       }
       const data = await analyticsRepository.getGrowthLeaders(limit);
       // Replace nulls with zero for avg_price, min_price, max_price
-      const sanitized = data.map(item => ({
+      const sanitized = data.map((item) => ({
         ...item,
         avg_price: item.avg_price == null ? 0 : Number(item.avg_price),
         min_price: item.min_price == null ? 0 : Number(item.min_price),
@@ -436,8 +483,8 @@ class AnalyticsService {
         metadata: {
           totalCount: sanitized.length,
           requestedLimit: limit,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
       throw new Error(`Error getting growth leaders: ${error.message}`);
@@ -452,11 +499,11 @@ class AnalyticsService {
   async getHospitalDistanceByPrice(limit = 10) {
     try {
       if (limit < 1 || limit > 100) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error("Limit must be between 1 and 100");
       }
       const data = await analyticsRepository.getHospitalDistanceByPrice(limit);
       // Replace nulls with zero for avg_price
-      const sanitized = data.map(item => ({
+      const sanitized = data.map((item) => ({
         ...item,
         avg_price: item.avg_price == null ? 0 : Number(item.avg_price),
       }));
@@ -466,11 +513,13 @@ class AnalyticsService {
         metadata: {
           totalCount: sanitized.length,
           requestedLimit: limit,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
-      throw new Error(`Error getting hospital distance by price: ${error.message}`);
+      throw new Error(
+        `Error getting hospital distance by price: ${error.message}`
+      );
     }
   }
 
@@ -482,11 +531,11 @@ class AnalyticsService {
   async getSafetyToSaleRatio(limit = 10) {
     try {
       if (limit < 1 || limit > 100) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error("Limit must be between 1 and 100");
       }
       const data = await analyticsRepository.getSafetyToSaleRatio(limit);
       // Replace nulls with zero for avg_price
-      const sanitized = data.map(item => ({
+      const sanitized = data.map((item) => ({
         ...item,
         avg_price: item.avg_price == null ? 0 : Number(item.avg_price),
       }));
@@ -496,8 +545,8 @@ class AnalyticsService {
         metadata: {
           totalCount: sanitized.length,
           requestedLimit: limit,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
       throw new Error(`Error getting safety to sale ratio: ${error.message}`);
@@ -513,14 +562,17 @@ class AnalyticsService {
   async getAffordableZipcodes(maxPrice = 300000, limit = 20) {
     try {
       if (maxPrice < 0) {
-        throw new Error('Max price must be positive');
+        throw new Error("Max price must be positive");
       }
       if (limit < 1 || limit > 100) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error("Limit must be between 1 and 100");
       }
-      const data = await analyticsRepository.getAffordableZipcodes(maxPrice, limit);
+      const data = await analyticsRepository.getAffordableZipcodes(
+        maxPrice,
+        limit
+      );
       // Replace nulls with zero for avg_price, min_price, max_price
-      const sanitized = data.map(item => ({
+      const sanitized = data.map((item) => ({
         ...item,
         avg_price: item.avg_price == null ? 0 : Number(item.avg_price),
         min_price: item.min_price == null ? 0 : Number(item.min_price),
@@ -533,8 +585,8 @@ class AnalyticsService {
           totalCount: sanitized.length,
           maxPrice,
           requestedLimit: limit,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
       throw new Error(`Error getting affordable ZIP codes: ${error.message}`);
@@ -550,11 +602,12 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (limit < 1 || limit > 100) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error("Limit must be between 1 and 100");
       }
 
       // Get data from repository
-      const underservedHealthcare = await analyticsRepository.getUnderservedHealthcare(limit);
+      const underservedHealthcare =
+        await analyticsRepository.getUnderservedHealthcare(limit);
 
       return {
         success: true,
@@ -562,11 +615,13 @@ class AnalyticsService {
         metadata: {
           totalCount: underservedHealthcare.length,
           requestedLimit: limit,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       };
     } catch (error) {
-      throw new Error(`Service error in getUnderservedHealthcare: ${error.message}`);
+      throw new Error(
+        `Service error in getUnderservedHealthcare: ${error.message}`
+      );
     }
   }
 
@@ -582,7 +637,7 @@ class AnalyticsService {
       type: type,
       count: data.length,
       data: data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -595,7 +650,7 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (!zipcode || zipcode.length !== 5) {
-        throw new Error('Invalid ZIP code format');
+        throw new Error("Invalid ZIP code format");
       }
 
       // Get data from repository
@@ -604,34 +659,40 @@ class AnalyticsService {
       if (!data) {
         return {
           success: true,
-          data: [{
-            zipcode,
-            message: 'No data available for this ZIP code'
-          }]
+          data: [
+            {
+              zipcode,
+              message: "No data available for this ZIP code",
+            },
+          ],
         };
       }
 
       return {
         success: true,
-        data: [{
-          zipcode: data.zipcode,
-          city: data.city,
-          state: data.state,
-          population: parseInt(data.population || 0),
-          totalFacilities: parseInt(data.total_facilities || 0),
-          facilitiesPer10k: parseFloat(data.facilities_per_10k || 0),
-          ratio: parseFloat(data.facilities_per_10k || 0),
-          facilityBreakdown: {
-            childcare: parseInt(data.childcare_count || 0),
-            hospitals: parseInt(data.hospital_count || 0),
-            police: parseInt(data.police_count || 0),
-            firefighter: parseInt(data.firefighter_count || 0)
+        data: [
+          {
+            zipcode: data.zipcode,
+            city: data.city,
+            state: data.state,
+            population: parseInt(data.population || 0),
+            totalFacilities: parseInt(data.total_facilities || 0),
+            facilitiesPer10k: parseFloat(data.facilities_per_10k || 0),
+            ratio: parseFloat(data.facilities_per_10k || 0),
+            facilityBreakdown: {
+              childcare: parseInt(data.childcare_count || 0),
+              hospitals: parseInt(data.hospital_count || 0),
+              police: parseInt(data.police_count || 0),
+              firefighter: parseInt(data.firefighter_count || 0),
+            },
+            timestamp: new Date().toISOString(),
           },
-          timestamp: new Date().toISOString()
-        }]
+        ],
       };
     } catch (error) {
-      throw new Error(`Service error in getFacilitiesToPopulation: ${error.message}`);
+      throw new Error(
+        `Service error in getFacilitiesToPopulation: ${error.message}`
+      );
     }
   }
 
@@ -645,7 +706,7 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (months < 1 || months > 24) {
-        throw new Error('Months must be between 1 and 24');
+        throw new Error("Months must be between 1 and 24");
       }
 
       // Get data from repository
@@ -653,7 +714,7 @@ class AnalyticsService {
 
       return {
         success: true,
-        data: data.map(item => ({
+        data: data.map((item) => ({
           zipcode: item.zipcode,
           city: item.city,
           state: item.state,
@@ -662,8 +723,8 @@ class AnalyticsService {
           medianPrice: parseFloat(item.medianlistingprice || 0),
           priceChange: parseFloat(item.price_change || 0),
           listingChange: parseInt(item.listing_change || 0),
-          timestamp: new Date().toISOString()
-        }))
+          timestamp: new Date().toISOString(),
+        })),
       };
     } catch (error) {
       throw new Error(`Service error in getMarketTrends: ${error.message}`);
@@ -679,13 +740,13 @@ class AnalyticsService {
     try {
       // Business logic: Validate input
       if (!zipcodes) {
-        throw new Error('ZIP codes parameter is required');
+        throw new Error("ZIP codes parameter is required");
       }
 
-      const zipcodeArray = zipcodes.split(',').map(z => z.trim());
-      
+      const zipcodeArray = zipcodes.split(",").map((z) => z.trim());
+
       if (zipcodeArray.length < 2) {
-        throw new Error('At least 2 ZIP codes are required for comparison');
+        throw new Error("At least 2 ZIP codes are required for comparison");
       }
 
       // Validate each ZIP code
@@ -700,7 +761,7 @@ class AnalyticsService {
 
       return {
         success: true,
-        data: data.map(item => ({
+        data: data.map((item) => ({
           zipcode: item.zipcode,
           city: item.city,
           state: item.state,
@@ -712,13 +773,15 @@ class AnalyticsService {
             childcare: parseInt(item.childcare_count || 0),
             hospitals: parseInt(item.hospital_count || 0),
             police: parseInt(item.police_count || 0),
-            firefighter: parseInt(item.firefighter_count || 0)
+            firefighter: parseInt(item.firefighter_count || 0),
           },
-          timestamp: new Date().toISOString()
-        }))
+          timestamp: new Date().toISOString(),
+        })),
       };
     } catch (error) {
-      throw new Error(`Service error in getZipcodeComparison: ${error.message}`);
+      throw new Error(
+        `Service error in getZipcodeComparison: ${error.message}`
+      );
     }
   }
 
@@ -729,15 +792,15 @@ class AnalyticsService {
    */
   validateAnalyticsParams(params) {
     const { limit, maxPrice } = params;
-    
+
     if (limit && (isNaN(limit) || limit < 1 || limit > 100)) {
-      throw new Error('Limit must be a number between 1 and 100');
+      throw new Error("Limit must be a number between 1 and 100");
     }
-    
+
     if (maxPrice && (isNaN(maxPrice) || maxPrice < 0)) {
-      throw new Error('Max price must be a positive number');
+      throw new Error("Max price must be a positive number");
     }
-    
+
     return true;
   }
 
@@ -749,69 +812,104 @@ class AnalyticsService {
   async getHomepageFeaturedZipcodes(limit = 4) {
     try {
       if (limit < 1 || limit > 10) {
-        throw new Error('Limit must be between 1 and 10');
+        throw new Error("Limit must be between 1 and 10");
       }
-      const featuredZipcodes = await analyticsRepository.getHomepageFeaturedZipcodes(limit);
-      
+      const featuredZipcodes =
+        await analyticsRepository.getHomepageFeaturedZipcodes(limit);
+
       // Return success: false with null data if no results
-      if (!featuredZipcodes || (Array.isArray(featuredZipcodes) && featuredZipcodes.length === 0)) {
+      if (
+        !featuredZipcodes ||
+        (Array.isArray(featuredZipcodes) && featuredZipcodes.length === 0)
+      ) {
         return {
           success: false,
           data: null,
-          message: 'No featured ZIP codes found',
-          timestamp: new Date().toISOString()
+          message: "No featured ZIP codes found",
+          timestamp: new Date().toISOString(),
         };
       }
-      
+
       // Defensive: if mock returns a single object, wrap in array
-      let dataArr = Array.isArray(featuredZipcodes) ? featuredZipcodes : [featuredZipcodes];
+      let dataArr = Array.isArray(featuredZipcodes)
+        ? featuredZipcodes
+        : [featuredZipcodes];
       // Defensive: if array is empty or contains a single object with no zipcode, use default mock
       if (!dataArr.length || !dataArr[0].zipcode) {
-        dataArr = [{
-          zipcode: '19104',
-          facilities: { firefighter: 0, hospitals: 0, police: 0, total: 0 },
-          healthMetrics: { avgPoorHealthRatio: 0, healthMeasuresCount: 0, population: 0 },
-          income: { meanIncome: 0 },
-          scores: { healthServiceScore: 0, rank: 0, serviceLevelScore: 0, staffingServiceScore: 0 },
-          analysis: { facilityStatus: 'Critically Underserved', healthStatus: 'Excellent Health Outcomes', serviceLevel: 'Critical Service Level' }
-        }];
+        dataArr = [
+          {
+            zipcode: "19104",
+            facilities: { firefighter: 0, hospitals: 0, police: 0, total: 0 },
+            healthMetrics: {
+              avgPoorHealthRatio: 0,
+              healthMeasuresCount: 0,
+              population: 0,
+            },
+            income: { meanIncome: 0 },
+            scores: {
+              healthServiceScore: 0,
+              rank: 0,
+              serviceLevelScore: 0,
+              staffingServiceScore: 0,
+            },
+            analysis: {
+              facilityStatus: "Critically Underserved",
+              healthStatus: "Excellent Health Outcomes",
+              serviceLevel: "Critical Service Level",
+            },
+          },
+        ];
       }
       // If already formatted, just return
-      if (dataArr[0].facilities && dataArr[0].healthMetrics && dataArr[0].income && dataArr[0].scores && dataArr[0].analysis) {
+      if (
+        dataArr[0].facilities &&
+        dataArr[0].healthMetrics &&
+        dataArr[0].income &&
+        dataArr[0].scores &&
+        dataArr[0].analysis
+      ) {
         return { success: true, data: dataArr };
       }
       // Otherwise, format as expected
-      const formattedData = dataArr.map(item => ({
+      const formattedData = dataArr.map((item) => ({
         zipcode: item.zipcode,
         facilities: {
           hospitals: parseInt(item.hospital_count || 0),
           police: parseInt(item.police_count || 0),
           firefighter: parseInt(item.firefighter_count || 0),
-          total: parseInt(item.total_facilities || 0)
+          total: parseInt(item.total_facilities || 0),
         },
         healthMetrics: {
           avgPoorHealthRatio: parseFloat(item.avg_poor_health_ratio || 0),
           healthMeasuresCount: parseInt(item.health_measures_count || 0),
-          population: parseInt(item.population || 0)
+          population: parseInt(item.population || 0),
         },
         income: {
-          meanIncome: parseFloat(item.meanincome || 0)
+          meanIncome: parseFloat(item.meanincome || 0),
         },
         scores: {
           staffingServiceScore: parseFloat(item.staffing_service_score || 0),
           healthServiceScore: parseFloat(item.health_service_score || 0),
           serviceLevelScore: parseFloat(item.service_level_score || 0),
-          rank: parseInt(item.rank || 0)
+          rank: parseInt(item.rank || 0),
         },
         analysis: {
-          serviceLevel: this.getServiceLevelDescription(parseFloat(item.service_level_score || 0)),
-          healthStatus: this.getHealthStatusDescription(parseFloat(item.avg_poor_health_ratio || 0)),
-          facilityStatus: this.getFacilityStatusDescription(parseInt(item.total_facilities || 0))
-        }
+          serviceLevel: this.getServiceLevelDescription(
+            parseFloat(item.service_level_score || 0)
+          ),
+          healthStatus: this.getHealthStatusDescription(
+            parseFloat(item.avg_poor_health_ratio || 0)
+          ),
+          facilityStatus: this.getFacilityStatusDescription(
+            parseInt(item.total_facilities || 0)
+          ),
+        },
       }));
       return { success: true, data: formattedData };
     } catch (error) {
-      throw new Error(`Service error in getHomepageFeaturedZipcodes: ${error.message}`);
+      throw new Error(
+        `Service error in getHomepageFeaturedZipcodes: ${error.message}`
+      );
     }
   }
 
@@ -827,14 +925,26 @@ class AnalyticsService {
         averageServiceScore: 0,
         averageHealthScore: 0,
         averageFacilityCount: 0,
-        averagePopulation: 0
+        averagePopulation: 0,
       };
     }
 
-    const totalServiceScore = zipcodes.reduce((sum, item) => sum + item.scores.serviceLevelScore, 0);
-    const totalHealthScore = zipcodes.reduce((sum, item) => sum + item.scores.healthServiceScore, 0);
-    const totalFacilityCount = zipcodes.reduce((sum, item) => sum + item.facilities.total, 0);
-    const totalPopulation = zipcodes.reduce((sum, item) => sum + item.healthMetrics.population, 0);
+    const totalServiceScore = zipcodes.reduce(
+      (sum, item) => sum + item.scores.serviceLevelScore,
+      0
+    );
+    const totalHealthScore = zipcodes.reduce(
+      (sum, item) => sum + item.scores.healthServiceScore,
+      0
+    );
+    const totalFacilityCount = zipcodes.reduce(
+      (sum, item) => sum + item.facilities.total,
+      0
+    );
+    const totalPopulation = zipcodes.reduce(
+      (sum, item) => sum + item.healthMetrics.population,
+      0
+    );
 
     return {
       totalZipcodes: zipcodes.length,
@@ -842,8 +952,12 @@ class AnalyticsService {
       averageHealthScore: (totalHealthScore / zipcodes.length).toFixed(3),
       averageFacilityCount: (totalFacilityCount / zipcodes.length).toFixed(1),
       averagePopulation: Math.round(totalPopulation / zipcodes.length),
-      bestServiceScore: Math.max(...zipcodes.map(item => item.scores.serviceLevelScore)).toFixed(3),
-      worstServiceScore: Math.min(...zipcodes.map(item => item.scores.serviceLevelScore)).toFixed(3)
+      bestServiceScore: Math.max(
+        ...zipcodes.map((item) => item.scores.serviceLevelScore)
+      ).toFixed(3),
+      worstServiceScore: Math.min(
+        ...zipcodes.map((item) => item.scores.serviceLevelScore)
+      ).toFixed(3),
     };
   }
 
@@ -853,11 +967,11 @@ class AnalyticsService {
    * @returns {string} Description
    */
   getServiceLevelDescription(score) {
-    if (score >= 0.8) return 'Excellent Service Level';
-    if (score >= 0.6) return 'Good Service Level';
-    if (score >= 0.4) return 'Moderate Service Level';
-    if (score >= 0.2) return 'Poor Service Level';
-    return 'Critical Service Level';
+    if (score >= 0.8) return "Excellent Service Level";
+    if (score >= 0.6) return "Good Service Level";
+    if (score >= 0.4) return "Moderate Service Level";
+    if (score >= 0.2) return "Poor Service Level";
+    return "Critical Service Level";
   }
 
   /**
@@ -866,11 +980,11 @@ class AnalyticsService {
    * @returns {string} Description
    */
   getHealthStatusDescription(ratio) {
-    if (ratio <= 15) return 'Excellent Health Outcomes';
-    if (ratio <= 25) return 'Good Health Outcomes';
-    if (ratio <= 35) return 'Moderate Health Outcomes';
-    if (ratio <= 45) return 'Poor Health Outcomes';
-    return 'Critical Health Outcomes';
+    if (ratio <= 15) return "Excellent Health Outcomes";
+    if (ratio <= 25) return "Good Health Outcomes";
+    if (ratio <= 35) return "Moderate Health Outcomes";
+    if (ratio <= 45) return "Poor Health Outcomes";
+    return "Critical Health Outcomes";
   }
 
   /**
@@ -879,11 +993,11 @@ class AnalyticsService {
    * @returns {string} Description
    */
   getFacilityStatusDescription(total) {
-    if (total >= 8) return 'Well Served';
-    if (total >= 5) return 'Adequately Served';
-    if (total >= 3) return 'Moderately Served';
-    if (total >= 1) return 'Underserved';
-    return 'Critically Underserved';
+    if (total >= 8) return "Well Served";
+    if (total >= 5) return "Adequately Served";
+    if (total >= 3) return "Moderately Served";
+    if (total >= 1) return "Underserved";
+    return "Critically Underserved";
   }
 
   /**
@@ -894,57 +1008,68 @@ class AnalyticsService {
   async getLocationPageData(zipcode) {
     try {
       if (!zipcode || zipcode.length !== 5) {
-        throw new Error('Invalid ZIP code format');
+        throw new Error("Invalid ZIP code format");
       }
-      const locationData = await analyticsRepository.getLocationPageData(zipcode);
+      const cacheKey = `location:${zipcode}`;
+      const redisCached = await getCached(cacheKey);
+      if (redisCached) return redisCached;
+
+      const locationData = await analyticsRepository.getLocationPageData(
+        zipcode
+      );
       if (!locationData) {
         // Defensive: return default mock
-        return { success: true, data: {
-          zipcode: zipcode,
-          location: { city: 'Philadelphia', state: 'PA' },
-          demographics: { population: 25000 },
-          realEstate: { medianPrice: 250000, activeListings: 15 },
-          income: { meanIncome: 45000 },
-          facilities: {
-            police: { stations: 2, officers: 25 },
-            hospitals: 3,
-            fire: { departments: 1, personnel: 10 },
-            childcare: 5
+        return {
+          success: true,
+          data: {
+            zipcode: zipcode,
+            location: { city: "Philadelphia", state: "PA" },
+            demographics: { population: 25000 },
+            realEstate: { medianPrice: 250000, activeListings: 15 },
+            income: { meanIncome: 45000 },
+            facilities: {
+              police: { stations: 2, officers: 25 },
+              hospitals: 3,
+              fire: { departments: 1, personnel: 10 },
+              childcare: 5,
+            },
+            timestamp: new Date().toISOString(),
           },
-          timestamp: new Date().toISOString()
-        }};
+        };
       }
       const formattedData = {
         zipcode: locationData.zipcode,
         location: {
           city: locationData.city,
-          state: locationData.state
+          state: locationData.state,
         },
         demographics: {
-          population: parseInt(locationData.population || 0)
+          population: parseInt(locationData.population || 0),
         },
         realEstate: {
           medianPrice: parseFloat(locationData.medianlistingprice || 0),
-          activeListings: parseInt(locationData.activelistingcount || 0)
+          activeListings: parseInt(locationData.activelistingcount || 0),
         },
         income: {
-          meanIncome: parseFloat(locationData.meanincome || 0)
+          meanIncome: parseFloat(locationData.meanincome || 0),
         },
         facilities: {
           police: {
             stations: parseInt(locationData.policestations || 0),
-            officers: parseInt(locationData.policeofficers || 0)
+            officers: parseInt(locationData.policeofficers || 0),
           },
           hospitals: parseInt(locationData.hospitals || 0),
           fire: {
             departments: parseInt(locationData.firefighterdepartments || 0),
-            personnel: parseInt(locationData.firefighters || 0)
+            personnel: parseInt(locationData.firefighters || 0),
           },
-          childcare: parseInt(locationData.childcarecenters || 0)
+          childcare: parseInt(locationData.childcarecenters || 0),
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      return { success: true, data: formattedData };
+      const result = { success: true, data: formattedData };
+      await setCached(cacheKey, result);
+      return result;
     } catch (error) {
       throw new Error(`Service error in getLocationPageData: ${error.message}`);
     }
@@ -959,11 +1084,18 @@ class AnalyticsService {
   async getCityAggregateComparison(city, state) {
     try {
       if (!city || !state) {
-        throw new Error('City and state are required');
+        throw new Error("City and state are required");
       }
-      const data = await analyticsRepository.getCityAggregateComparison(city, state);
+      const data = await analyticsRepository.getCityAggregateComparison(
+        city,
+        state
+      );
       if (!data) {
-        return { success: false, data: null, message: 'No data found for the specified city and state.' };
+        return {
+          success: false,
+          data: null,
+          message: "No data found for the specified city and state.",
+        };
       }
       // Format response
       return {
@@ -980,13 +1112,20 @@ class AnalyticsService {
           numPoliceOfficers: parseInt(data.numpoliceofficers || 0),
           numChildCareCenter: parseInt(data.numchildcarecenter || 0),
           numHospitals: parseInt(data.numhospitals || 0),
-          obesityRate: data.obesityrate !== null ? parseFloat(data.obesityrate) : null,
-          asthmaRate: data.asthmarate !== null ? parseFloat(data.asthmarate) : null,
-          depressionRate: data.depressionrate !== null ? parseFloat(data.depressionrate) : null
-        }
+          obesityRate:
+            data.obesityrate !== null ? parseFloat(data.obesityrate) : null,
+          asthmaRate:
+            data.asthmarate !== null ? parseFloat(data.asthmarate) : null,
+          depressionRate:
+            data.depressionrate !== null
+              ? parseFloat(data.depressionrate)
+              : null,
+        },
       };
     } catch (error) {
-      throw new Error(`Service error in getCityAggregateComparison: ${error.message}`);
+      throw new Error(
+        `Service error in getCityAggregateComparison: ${error.message}`
+      );
     }
   }
 
@@ -999,7 +1138,7 @@ class AnalyticsService {
   async getCityGrowthRate(city, state) {
     try {
       if (!city || !state) {
-        throw new Error('City and state are required');
+        throw new Error("City and state are required");
       }
       const data = await analyticsRepository.getCityGrowthRate(city, state);
       if (!data) {
@@ -1007,7 +1146,8 @@ class AnalyticsService {
         return {
           success: true,
           data: null,
-          message: 'No growth rate data found for the specified city and state.'
+          message:
+            "No growth rate data found for the specified city and state.",
         };
       }
       return {
@@ -1017,10 +1157,10 @@ class AnalyticsService {
           state: data.state,
           growthRate3Year: data.growthrate3year,
           analysis: {
-            period: '2022-2025',
-            description: this.getGrowthRateDescription(data.growthrate3year)
-          }
-        }
+            period: "2022-2025",
+            description: this.getGrowthRateDescription(data.growthrate3year),
+          },
+        },
       };
     } catch (error) {
       throw new Error(`Service error in getCityGrowthRate: ${error.message}`);
@@ -1033,20 +1173,20 @@ class AnalyticsService {
    * @returns {string} Description of growth rate
    */
   getGrowthRateDescription(growthRate) {
-    if (!growthRate) return 'No growth data available';
-    
+    if (!growthRate) return "No growth data available";
+
     // Remove % symbol and convert to number
-    const rate = parseFloat(growthRate.replace('%', ''));
-    
-    if (isNaN(rate)) return 'Invalid growth rate data';
-    
-    if (rate > 20) return 'Exceptional Growth';
-    if (rate > 10) return 'Strong Growth';
-    if (rate > 5) return 'Moderate Growth';
-    if (rate > 0) return 'Slow Growth';
-    if (rate > -5) return 'Stable';
-    if (rate > -10) return 'Slight Decline';
-    return 'Significant Decline';
+    const rate = parseFloat(growthRate.replace("%", ""));
+
+    if (isNaN(rate)) return "Invalid growth rate data";
+
+    if (rate > 20) return "Exceptional Growth";
+    if (rate > 10) return "Strong Growth";
+    if (rate > 5) return "Moderate Growth";
+    if (rate > 0) return "Slow Growth";
+    if (rate > -5) return "Stable";
+    if (rate > -10) return "Slight Decline";
+    return "Significant Decline";
   }
 
   /**
@@ -1057,30 +1197,46 @@ class AnalyticsService {
   async getSimilarZipcodes(zipcode) {
     try {
       if (!zipcode) {
-        throw new Error('ZIP code is required');
+        throw new Error("ZIP code is required");
       }
+      const cacheKey = `similar-zipcodes:${zipcode}`;
+      const redisCached = await getCached(cacheKey);
+      if (redisCached) return redisCached;
+
       const data = await analyticsRepository.getSimilarZipcodes(zipcode);
       // Defensive: filter out any null/undefined/empty results
-      const filtered = Array.isArray(data) ? data.filter(item => item && item.zipcode && item.similarity_score !== undefined && item.similarity_score !== null) : [];
+      const filtered = Array.isArray(data)
+        ? data.filter(
+            (item) =>
+              item &&
+              item.zipcode &&
+              item.similarity_score !== undefined &&
+              item.similarity_score !== null
+          )
+        : [];
+      let result;
       if (!filtered.length) {
         // Return success: true with null data and message if no matches (test expects success: true)
-        return {
+        result = {
           success: true,
           data: null,
-          message: 'No similar ZIP codes found for the specified ZIP code.'
+          message: "No similar ZIP codes found for the specified ZIP code.",
+        };
+      } else {
+        result = {
+          success: true,
+          data: {
+            sourceZipcode: zipcode,
+            similarZipcodes: filtered.map((item) => ({
+              zipcode: item.zipcode,
+              similarityScore: parseFloat(item.similarity_score),
+            })),
+            analysis: { method: "weighted attributes", count: filtered.length },
+          },
         };
       }
-      return {
-        success: true,
-        data: {
-          sourceZipcode: zipcode,
-          similarZipcodes: filtered.map(item => ({
-            zipcode: item.zipcode,
-            similarityScore: parseFloat(item.similarity_score)
-          })),
-          analysis: { method: 'weighted attributes', count: filtered.length }
-        }
-      };
+      await setCached(cacheKey, result);
+      return result;
     } catch (error) {
       throw new Error(`Service error in getSimilarZipcodes: ${error.message}`);
     }
@@ -1095,17 +1251,26 @@ class AnalyticsService {
   async getSimilarCities(city, state) {
     try {
       if (!city || !state) {
-        throw new Error('City and state are required');
+        throw new Error("City and state are required");
       }
       const data = await analyticsRepository.getSimilarCities(city, state);
       // Defensive: filter out any null/undefined/empty results
-      const filtered = Array.isArray(data) ? data.filter(item => item && item.city && item.state && item.similarity_score !== undefined && item.similarity_score !== null) : [];
+      const filtered = Array.isArray(data)
+        ? data.filter(
+            (item) =>
+              item &&
+              item.city &&
+              item.state &&
+              item.similarity_score !== undefined &&
+              item.similarity_score !== null
+          )
+        : [];
       if (!filtered.length) {
         // Return success: true with null data and message if no matches (test expects success: true)
         return {
           success: true,
           data: null,
-          message: 'No similar cities found for the specified city and state.'
+          message: "No similar cities found for the specified city and state.",
         };
       }
       return {
@@ -1113,13 +1278,13 @@ class AnalyticsService {
         data: {
           sourceCity: city,
           sourceState: state,
-          similarCities: filtered.map(item => ({
+          similarCities: filtered.map((item) => ({
             city: item.city,
             state: item.state,
-            similarityScore: parseFloat(item.similarity_score)
+            similarityScore: parseFloat(item.similarity_score),
           })),
-          analysis: { method: 'weighted attributes', count: filtered.length }
-        }
+          analysis: { method: "weighted attributes", count: filtered.length },
+        },
       };
     } catch (error) {
       throw new Error(`Service error in getSimilarCities: ${error.message}`);
@@ -1135,11 +1300,18 @@ class AnalyticsService {
   async getFacilitiesToPopulationByCity(city, state) {
     try {
       if (!city || !state) {
-        throw new Error('City and state are required');
+        throw new Error("City and state are required");
       }
-      const data = await analyticsRepository.getFacilitiesToPopulationByCity(city, state);
+      const data = await analyticsRepository.getFacilitiesToPopulationByCity(
+        city,
+        state
+      );
       if (!data) {
-        return { success: false, data: null, message: 'No data found for the specified city and state.' };
+        return {
+          success: false,
+          data: null,
+          message: "No data found for the specified city and state.",
+        };
       }
       return {
         success: true,
@@ -1153,22 +1325,23 @@ class AnalyticsService {
             hospitals: parseInt(data.total_hospitals || 0),
             police: parseInt(data.total_police_stations || 0),
             firefighter: parseInt(data.total_firefighter_stations || 0),
-            total: parseInt(data.total_facilities || 0)
+            total: parseInt(data.total_facilities || 0),
           },
           density: {
             facilitiesPer10k: parseFloat(data.facilities_per_10k || 0),
             childcarePer10k: parseFloat(data.childcare_per_10k || 0),
             hospitalsPer10k: parseFloat(data.hospitals_per_10k || 0),
             policePer10k: parseFloat(data.police_per_10k || 0),
-            firefighterPer10k: parseFloat(data.firefighter_per_10k || 0)
-          }
-        }
+            firefighterPer10k: parseFloat(data.firefighter_per_10k || 0),
+          },
+        },
       };
     } catch (error) {
-      throw new Error(`Service error in getFacilitiesToPopulationByCity: ${error.message}`);
+      throw new Error(
+        `Service error in getFacilitiesToPopulationByCity: ${error.message}`
+      );
     }
   }
-
 }
 
-module.exports = new AnalyticsService(); 
+module.exports = new AnalyticsService();
