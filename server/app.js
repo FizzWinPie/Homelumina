@@ -52,6 +52,7 @@ const analyticsRoutes = require("./routes/analyticsRoutes");
 const healthRoutes = require("./routes/healthRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const sqlAgentRoutes = require("./routes/sqlAgentRoutes");
 
 // Create Express app
 const createApp = () => {
@@ -103,6 +104,15 @@ const createApp = () => {
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     skip: (req) => req.path === "/metrics", // Don't count Prometheus scrapes
+  });
+
+  const sqlAgentLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // SQL agent: 10 requests per 15 min per IP (costs API + DB)
+    message:
+      "Too many SQL agent requests from this IP, please try again after 15 minutes",
+    standardHeaders: true,
+    legacyHeaders: false,
   });
 
   // Apply middleware in order
@@ -168,6 +178,7 @@ const createApp = () => {
   app.use("/api/v1/health", healthRoutes);
   app.use("/api/v1/search", searchRoutes);
   app.use("/api/v1/admin", adminRoutes);
+  app.use("/api/v1/sql-agent", sqlAgentLimiter, sqlAgentRoutes);
 
   // API version information endpoint
   app.get("/api/versions", getVersionInfo);
@@ -230,6 +241,12 @@ const createApp = () => {
             "GET /zipcodes?city=Philadelphia&state=PA - Get ZIP codes by city and state",
             "GET /cities?state=PA&limit=20 - Get cities by state",
             "GET /states - Get all states",
+          ],
+        },
+        sqlAgent: {
+          base: "/sql-agent",
+          endpoints: [
+            "POST /query - Natural language to SQL. Body: { question: string, includeSummary?: boolean }. Returns generated SQL, rows, and optional summary.",
           ],
         },
       },

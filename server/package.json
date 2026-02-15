@@ -19,6 +19,7 @@
     "generate:types": "openapi-typescript ./swagger.json --output ../client/src/types/server.d.ts"
   },
   "dependencies": {
+    "@google/genai": "^1.41.0",
     "axios": "^1.7.9",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",

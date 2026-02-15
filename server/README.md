@@ -32,6 +32,8 @@ A Node.js Express server for the CIS 5500 project with PostgreSQL database conne
    MONGODB_URI=ask_john
    ```
 
+   **Optional (SQL Agent):** To enable natural-language-to-SQL, set `GEMINI_API_KEY` (from [Google AI Studio](https://aistudio.google.com/apikey)). Without it, `POST /api/v1/sql-agent/query` returns 503.
+
 3. Run the server:
 
    ```bash
@@ -83,6 +85,21 @@ For production deployment, ensure:
 - `GET /tables` - List all database tables
 - `GET /table-structure/:tableName` - Check table structure
 - `GET /sample-data/:tableName` - Get sample data from a table
+
+### SQL Agent (Natural language to SQL)
+- **URL:** `POST /api/v1/sql-agent/query`
+- **Description:** Ask a question in plain English; the server uses Gemini to generate a read-only SELECT, runs it against PostgreSQL, and returns the generated SQL and rows. Optionally returns a short summary. Requires `GEMINI_API_KEY` in `.env`.
+- **Request body:**
+  - `question` (required, string, max 500 chars): Natural language question about the data.
+  - `includeSummary` (optional, boolean): If `true`, response includes a 1–2 sentence summary of the results.
+- **Response:** `{ success, data: { sql, rows, summary? }, type: "sql_agent_query" }`
+- **Errors:** 400 (missing/invalid question or generated query not read-only), 503 (Gemini not configured), 500 (server/DB error).
+- **Example:**
+  ```bash
+  curl -X POST "http://localhost:3000/api/v1/sql-agent/query" \
+    -H "Content-Type: application/json" \
+    -d '{"question":"Top 5 zip codes by median listing price in Pennsylvania","includeSummary":false}'
+  ```
 
 ### Analytics Endpoints
 
@@ -674,6 +691,19 @@ curl "http://localhost:3000/facilities/zipcodes/top?limit=10"
 
 # Analyze childcare distribution
 curl "http://localhost:3000/facilities/childcare/average?min_hospitals=2"
+```
+
+### SQL Agent (natural language to SQL)
+```bash
+# Ask a question in plain English (requires GEMINI_API_KEY)
+curl -X POST "http://localhost:3000/api/v1/sql-agent/query" \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Top 5 zip codes by median listing price in Pennsylvania","includeSummary":false}'
+
+# Same with a short summary of the results
+curl -X POST "http://localhost:3000/api/v1/sql-agent/query" \
+  -H "Content-Type: application/json" \
+  -d '{"question":"How many hospitals are in zip code 19104?","includeSummary":true}'
 ```
 
 ## Best Practices
