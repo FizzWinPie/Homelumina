@@ -61,4 +61,7 @@ export const API_ENDPOINTS = {
       Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== null).map(([key, value]) => [key, value!.toString()]))
     ).toString()
   }&limit=${limit}`),
+
+  /** SQL agent: natural language to SQL. POST with body { question: string, includeSummary?: boolean }. */
+  sqlAgentQuery: () => buildApiUrl('/sql-agent/query'),
 }; 

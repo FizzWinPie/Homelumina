@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams, useLocation } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,11 +45,44 @@ const getInitialFilters = (cityQueryParam: string | null, stateQueryParam: strin
   }
 }
 
+/** Normalize SQL agent row (any key casing) to ZipCodeData for list/map/summary views. */
+function agentRowsToZipCodeData(rows: Record<string, unknown>[]): ZipCodeData[] {
+  const get = (row: Record<string, unknown>, key: string) => {
+    const k = Object.keys(row).find((x) => x.toLowerCase() === key.toLowerCase());
+    return k != null ? row[k] : undefined;
+  };
+  const num = (v: unknown) => (typeof v === "number" && !Number.isNaN(v) ? v : typeof v === "string" ? parseFloat(v) || 0 : 0);
+  const str = (v: unknown) => (v != null ? String(v) : "");
+  return rows.map((row) => ({
+    zipcode: str(get(row, "zipcode")),
+    city: str(get(row, "city")),
+    state: str(get(row, "state")),
+    latitude: num(get(row, "latitude")),
+    longitude: num(get(row, "longitude")),
+    population: num(get(row, "population")),
+    medianprice: num(get(row, "medianprice") ?? get(row, "medianlistingprice")),
+    meanincome: num(get(row, "meanincome") ?? get(row, "meanincome")),
+    healthratio: num(get(row, "healthratio") ?? get(row, "ratio")),
+    policedepartmentscount: str(get(row, "policedepartmentscount") ?? get(row, "policedeptcount")),
+    numpoliceofficerscount: str(get(row, "numpoliceofficerscount") ?? get(row, "policeofficercount")),
+    hospitalscount: str(get(row, "hospitalscount") ?? get(row, "hospitalcount")) || null,
+    firestationscount: str(get(row, "firestationscount") ?? get(row, "firestationcount")) || null,
+    firefighterscount: str(get(row, "firefighterscount") ?? get(row, "firefightercount")),
+    childcarecenterscount: str(get(row, "childcarecenterscount") ?? get(row, "childcarecount")),
+  }))
+}
+
+type AgentState = { fromAgent: true; agentData: { sql: string; rows: Record<string, unknown>[]; summary?: string } }
+
 export function SearchResults() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const cityQueryParam = searchParams.get("city")
   const stateQueryParam = searchParams.get("state")
+  const agentPayload = (location.state as AgentState | null)?.fromAgent && (location.state as AgentState)?.agentData
+    ? { fromAgent: true as const, agentData: (location.state as AgentState).agentData }
+    : null
 
   const [viewMode, setViewMode] = useState<"list" | "map" | "summary">("list")
   const [showFilters, setShowFilters] = useState(true)
@@ -60,6 +93,11 @@ export function SearchResults() {
     debouncedValue: debouncedFilters,
     setValue: setFilters
   } = useDebouncedState<Filters>(getInitialFilters(cityQueryParam, stateQueryParam), 500)
+
+  // Sync filters from URL when landing with ?city= & ?state= (e.g. from hero search) so zipcode query runs with correct params
+  useEffect(() => {
+    setFilters(getInitialFilters(cityQueryParam, stateQueryParam))
+  }, [cityQueryParam, stateQueryParam, setFilters])
 
   const { data: healthMeasures, isPending: isHealthMeasuresPending, error: healthMeasuresError } = useQuery({
     queryKey: ["healthMeasures"],
@@ -150,11 +188,16 @@ export function SearchResults() {
         throw error;
       }
     },
-    enabled: (!!cityQueryParam && !!stateQueryParam) || !!stateQueryParam,
+    enabled: !agentPayload && ((!!cityQueryParam && !!stateQueryParam) || !!stateQueryParam),
   })
 
+  // When we have agent result from hero, use it; otherwise use API zipcode summaries
+  const effectiveZipCodeSummaries = agentPayload
+    ? { data: agentRowsToZipCodeData(agentPayload.agentData.rows), suggestion: agentPayload.agentData.summary ?? null }
+    : zipCodeSummaries
+
   let results = null
-  if (zipCodeError || healthMeasuresError) {
+  if (!agentPayload && (zipCodeError || healthMeasuresError)) {
     const error = zipCodeError || healthMeasuresError
     const errorMessage = error?.message || 'An error occurred while searching. Please try again.';
     
@@ -258,17 +301,15 @@ export function SearchResults() {
         </div>
       </div>
     )
-  } else if ((isHealthMeasuresPending || isZipCodeSummariesPending) && (!!cityQueryParam || !!stateQueryParam)) {
+  } else if (!agentPayload && (isHealthMeasuresPending || isZipCodeSummariesPending) && (!!cityQueryParam || !!stateQueryParam)) {
     results = (
       <div className="flex justify-center h-full mt-10">
-        {/* Removed Loader2 spinner due to missing import. Optionally, add a simple loading text or a different spinner here. */}
-        <span className="text-violet-500 text-lg">Loading...</span>
+        <span className="text-violet-500 text-lg animate-spin" />
       </div>
     )
-  } else if (!zipCodeSummaries?.data || zipCodeSummaries.data.length === 0) {
-    // Check if there's a suggestion message from the API response
-    const suggestionMessage = zipCodeSummaries?.suggestion || 'No results found matching your criteria.';
-    const suggestionDetails = zipCodeSummaries?.suggestion ? 'Try the suggested alternatives or adjust your filters.' : 'Try adjusting your filters or search terms.';
+  } else if (!effectiveZipCodeSummaries?.data || effectiveZipCodeSummaries.data.length === 0) {
+    const suggestionMessage = effectiveZipCodeSummaries?.suggestion || 'No results found matching your criteria.';
+    const suggestionDetails = effectiveZipCodeSummaries?.suggestion ? 'Try the suggested alternatives or adjust your filters.' : 'Try adjusting your filters or search terms.';
     
     results = (
       <div className="text-center py-12">
@@ -301,12 +342,11 @@ export function SearchResults() {
       </div>
     )
   } else {
-    // Calculate pagination
-    const totalItems = zipCodeSummaries.data.length
+    const totalItems = effectiveZipCodeSummaries.data.length
     const totalPages = Math.ceil(totalItems / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
-    const currentItems = zipCodeSummaries.data.slice(startIndex, endIndex)
+    const currentItems = effectiveZipCodeSummaries.data.slice(startIndex, endIndex)
 
     results = (
       <>
@@ -459,7 +499,12 @@ export function SearchResults() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Results for "{cityQueryParam ?? stateQueryParam ?? "Unknown Location"}"</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          {agentPayload ? "Agent query results" : `Results for "${cityQueryParam ?? stateQueryParam ?? "Unknown Location"}"`}
+        </h1>
+        {agentPayload?.agentData.summary && (
+          <p className="text-gray-600 dark:text-gray-400 mb-2 max-w-2xl">{agentPayload.agentData.summary}</p>
+        )}
 
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <div className="flex-0">

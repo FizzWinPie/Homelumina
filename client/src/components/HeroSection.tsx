@@ -4,11 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { API_ENDPOINTS } from "@/config/api";
 import { logger } from "@/utils/logger";
+import { useTypewriter } from "@/lib/hooks";
 
 // Fallback suggestions in case API is unavailable
 const fallbackSuggestions = [
   "New York, NY",
-  "Los Angeles, CA", 
+  "Brooklyn, NY",
+  "Los Angeles, CA",
   "Chicago, IL",
   "Houston, TX",
   "Philadelphia, PA",
@@ -113,7 +115,15 @@ export interface Suggestion {
   matchtype: 'City' | 'State' | 'ZipCode'
 }
 
+const AI_PHRASES = [
+  "Powered by AI - Simply write what you want to find",
+  "Find safe neighborhoods in Brooklyn",
+  "Find houses under $1M near parks",
+  "Find Pennsylvania zip codes with high median prices",
+];
+
 export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
+  const animatedPlaceholder = useTypewriter(AI_PHRASES);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -122,6 +132,7 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [agentResult, setAgentResult] = useState<{ sql: string; rows: Record<string, unknown>[]; summary?: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -137,7 +148,7 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
 
     setIsLoading(true);
     setErrorMessage(null);
-    
+
     try {
       // Check if the term looks like a zipcode (5 digits)
       const isZipcode = /^\d{5}$/.test(term.trim());
@@ -145,18 +156,18 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
       const isStateAbbreviation = /^[A-Za-z]{2}$/.test(term.trim());
       // Check if the term looks like a partial zipcode (1-4 digits)
       const isPartialZipcode = /^\d{1,4}$/.test(term.trim());
-      
+
       const limit = isStateAbbreviation ? 100 : (isZipcode || isPartialZipcode ? 20 : 10);
-      
+
       // Try to fetch from API first
       const response = await fetch(API_ENDPOINTS.autocomplete(term, limit));
-      
+
       if (response.ok) {
         const data = await response.json() as { success: boolean, data: { suggestions: Suggestion[] } };
         if (data.success && data.data?.suggestions) {
           // Extract the value from each suggestion
           let apiSuggestions = data.data.suggestions
-          
+
           setSuggestions(apiSuggestions);
           setShowSuggestions(apiSuggestions.length > 0);
           setSelectedIndex(-1);
@@ -187,22 +198,22 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
     const isZipcode = /^\d{5}$/.test(term.trim());
     const isPartialZipcode = /^\d{1,4}$/.test(term.trim());
     const maxResults = isStateAbbreviation ? 100 : (isZipcode || isPartialZipcode ? 20 : 10);
-    
+
     let filtered = fallbackSuggestions.filter((suggestion: string) => {
       const suggestionLower = suggestion.toLowerCase();
       return suggestionLower.includes(searchLower);
     });
-    
+
     // For state abbreviations, filter to only show cities that end with that state
     if (isStateAbbreviation) {
       const stateUpper = term.trim().toUpperCase();
-      filtered = filtered.filter((suggestion: string) => 
+      filtered = filtered.filter((suggestion: string) =>
         suggestion.endsWith(`, ${stateUpper}`)
       );
     }
-    
+
     filtered = filtered.slice(0, maxResults);
-    
+
     setSuggestions(filtered.map((suggestion: string) => ({ value: suggestion, matchtype: 'City' })));
     setShowSuggestions(filtered.length > 0);
     setSelectedIndex(-1);
@@ -219,62 +230,63 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
   }, [searchTerm]);
 
   // Validate search input and provide helpful error messages
-  const validateSearchInput = (input: string): { isValid: boolean; error?: string; suggestion?: Suggestion } => {
+  const validateSearchInput = (input: string): { isValid: boolean; error?: string; suggestion?: Suggestion, useAgent: boolean } => {
     const trimmedInput = input.trim();
-    
+
     if (!trimmedInput) {
-      return { isValid: false, error: 'Please enter a city, state, or ZIP code to search.' };
+      return { isValid: false, error: 'Please enter a city, state, or ZIP code to search.', useAgent: false };
     }
-    
+
     if (trimmedInput.length < 2) {
-      return { isValid: false, error: 'Search term must be at least 2 characters long.' };
+      return { isValid: false, error: 'Search term must be at least 2 characters long.', useAgent: false };
     }
-    
+
     // Check if it's a ZIP code
     if (/^\d{5}(-\d{4})?$/.test(trimmedInput)) {
-      return { isValid: true, suggestion: { value: trimmedInput, matchtype: 'ZipCode' } };
+      return { isValid: true, suggestion: { value: trimmedInput, matchtype: 'ZipCode' }, useAgent: false };
     }
-    
+
     // Check if it's a city, state format
     if (trimmedInput.includes(',')) {
       const parts = trimmedInput.split(',').map(part => part.trim());
       if (parts.length !== 2) {
-        return { isValid: false, error: 'Please use format: City, State (e.g., New York, NY)' };
+        return { isValid: false, error: 'Please use format: City, State (e.g., New York, NY)', useAgent: true };
       }
-      
+
       const [city, state] = parts;
       if (!city || city.length < 2) {
-        return { isValid: false, error: 'City name must be at least 2 characters long.' };
+        return { isValid: false, error: 'City name must be at least 2 characters long.', useAgent: false };
       }
-      
+
       if (!state || state.length !== 2) {
-        return { isValid: false, error: 'State must be a 2-letter abbreviation (e.g., NY, CA, TX).' };
+        return { isValid: false, error: 'State must be a 2-letter abbreviation (e.g., NY, CA, TX).', useAgent: false };
       }
-      
+
       if (!/^[A-Za-z]{2}$/.test(state)) {
-        return { isValid: false, error: 'State must be a 2-letter abbreviation using only letters (e.g., NY, CA, TX).' };
+        return { isValid: false, error: 'State must be a 2-letter abbreviation using only letters (e.g., NY, CA, TX).', useAgent: false };
       }
-      
-      return { isValid: true, suggestion: { value: `${city}, ${state.toUpperCase()}`, matchtype: 'City' } };
+
+      return { isValid: true, suggestion: { value: `${city}, ${state.toUpperCase()}`, matchtype: 'City' }, useAgent: false };
     }
-    
+
     // Check if it's a state abbreviation
     if (trimmedInput.length === 2) {
       if (!/^[A-Za-z]{2}$/.test(trimmedInput)) {
-        return { isValid: false, error: 'State must be a 2-letter abbreviation using only letters (e.g., NY, CA, TX).' };
+        return { isValid: false, error: 'State must be a 2-letter abbreviation using only letters (e.g., NY, CA, TX).', useAgent: false };
       }
-      return { isValid: true, suggestion: { value: trimmedInput.toUpperCase(), matchtype: 'State' } };
+      return { isValid: true, suggestion: { value: trimmedInput.toUpperCase(), matchtype: 'State' }, useAgent: false };
     }
-    
+
     // If we have suggestions, use the first one
     if (suggestions.length > 0) {
-      return { isValid: true, suggestion: suggestions[0] };
+      return { isValid: true, suggestion: suggestions[0], useAgent: false };
     }
-    
-    // No valid format found
-    return { 
-      isValid: false, 
-      error: 'Please enter a valid city and state (e.g., New York, NY), state abbreviation (e.g., NY), or ZIP code (e.g., 10001).' 
+
+    // No valid format found — try SQL agent as last resort (natural language query)
+    return {
+      isValid: false,
+      error: 'No location match. Trying your question as a data query…',
+      useAgent: true
     };
   };
 
@@ -283,30 +295,58 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
     if (e.key === "Enter") {
       e.preventDefault();
       setErrorMessage(null); // Clear any previous errors
-      
+
       if (selectedIndex >= 0 && suggestions[selectedIndex]) {
         // If a suggestion is selected, use it
         setSearchTerm(suggestions[selectedIndex].value);
         setShowSuggestions(false);
         await handleSearch(suggestions[selectedIndex]);
       } else if (searchTerm.trim()) {
-        // Validate the input
         const validation = validateSearchInput(searchTerm);
-        
-        if (!validation.isValid) {
-          setErrorMessage(validation.error || 'Invalid input');
-          return;
-        }
-        
-        if (validation.suggestion) {
+
+        if (validation.isValid && validation.suggestion) {
+          setAgentResult(null);
           setSearchTerm(validation.suggestion.value);
           setShowSuggestions(false);
           await handleSearch(validation.suggestion);
+          return;
+        }
+
+        if (!validation.isValid) {
+          if (validation.useAgent) {
+            setShowSuggestions(false);
+            setAgentResult(null);
+            setIsSearching(true);
+            setErrorMessage(null);
+            try {
+              const res = await fetch(API_ENDPOINTS.sqlAgentQuery(), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: searchTerm.trim(), includeSummary: false })
+              });
+              const data = await res.json();
+              if (res.ok && data.success && data.data) {
+                setAgentResult(data.data);
+                navigate('/search-results', { state: { fromAgent: true, agentData: data.data } });
+                setErrorMessage(null);
+              } else {
+                setAgentResult(null);
+                setErrorMessage(data.error || 'Agent isn`t feeling well today. Try a city, state, or ZIP.');
+              }
+            } catch {
+              setAgentResult(null);
+              setErrorMessage('Agent isn`t feeling well today. Try a city, state, or ZIP.');
+            } finally {
+              setIsSearching(false);
+            }
+            return;
+          }
+          setErrorMessage(validation.error || 'Invalid input');
         }
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex(prev => 
+      setSelectedIndex(prev =>
         prev < suggestions.length - 1 ? prev + 1 : prev
       );
     } else if (e.key === "ArrowUp") {
@@ -324,7 +364,7 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
       navigate(`/location-details?q=${encodeURIComponent(suggestion.value)}`);
     } else if (suggestion.matchtype === 'City') {
       const [city, state] = suggestion.value.split(', ');
-      
+
       // Check if the search will return results before navigating
       setIsSearching(true);
       try {
@@ -346,7 +386,7 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
           minPopulation: 0,
           maxPopulation: 500000
         }));
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data && result.data.length > 0) {
@@ -383,9 +423,9 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        inputRef.current && 
+        inputRef.current &&
         !inputRef.current.contains(event.target as Node) &&
-        suggestionsRef.current && 
+        suggestionsRef.current &&
         !suggestionsRef.current.contains(event.target as Node)
       ) {
         setShowSuggestions(false);
@@ -398,16 +438,14 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
   }, []);
 
   return (
-    <section className={`relative pt-28 pb-24 transition-colors duration-300 ${
-      isDarkMode 
-        ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
-        : 'bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100'
-    }`}>
+    <section className={`relative pt-28 pb-24 transition-colors duration-300 ${isDarkMode
+      ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
+      : 'bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100'
+      }`}>
       {/* Decorative Background Illustration */}
       <div className="absolute inset-0 pointer-events-none select-none">
-        <svg width="100%" height="100%" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" className={`absolute top-0 left-0 w-full h-64 opacity-40 blur-sm ${
-          isDarkMode ? 'opacity-20' : 'opacity-40'
-        }`}>
+        <svg width="100%" height="100%" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" className={`absolute top-0 left-0 w-full h-64 opacity-40 blur-sm ${isDarkMode ? 'opacity-20' : 'opacity-40'
+          }`}>
           <defs>
             <linearGradient id="hero-bg-gradient" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor={isDarkMode ? "#374151" : "#a5b4fc"} />
@@ -420,23 +458,20 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center">
           {/* Main Headline */}
-          <h1 className={`font-display text-4xl md:text-6xl lg:text-7xl font-black mb-8 leading-tight tracking-tight animate-fade-in-up ${
-            isDarkMode ? 'text-white' : 'text-gray-900'
-          }`}>
+          <h1 className={`font-display text-4xl md:text-6xl lg:text-7xl font-black mb-8 leading-tight tracking-tight animate-fade-in-up ${isDarkMode ? 'text-white' : 'text-gray-900'
+            }`}>
             Find Your Perfect Place to {" "}
             <span className="bg-gradient-to-r from-blue-600 via-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient-x drop-shadow-lg">
               Call Home
             </span>
           </h1>
           {/* Sub-headline */}
-          <h3 className={`font-accent text-lg md:text-xl lg:text-2xl mb-10 max-w-4xl mx-auto font-medium leading-relaxed animate-fade-in ${
-            isDarkMode ? 'text-gray-300' : 'text-gray-600'
-          }`}>
-            <span className={`bg-clip-text text-transparent ${
-              isDarkMode 
-                ? 'bg-gradient-to-r from-gray-300 via-gray-200 to-gray-100' 
-                : 'bg-gradient-to-r from-gray-700 via-gray-600 to-gray-500'
+          <h3 className={`font-accent text-lg md:text-xl lg:text-2xl mb-10 max-w-4xl mx-auto font-medium leading-relaxed animate-fade-in ${isDarkMode ? 'text-gray-300' : 'text-gray-600'
             }`}>
+            <span className={`bg-clip-text text-transparent ${isDarkMode
+              ? 'bg-gradient-to-r from-gray-300 via-gray-200 to-gray-100'
+              : 'bg-gradient-to-r from-gray-700 via-gray-600 to-gray-500'
+              }`}>
               Data-driven insights for smarter living decisions.
             </span>{" "}
             <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>
@@ -445,30 +480,28 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
           </h3>
           {/* Search Bar Card */}
           <div className="max-w-2xl mx-auto">
-            <div className={`rounded-3xl backdrop-blur-lg shadow-2xl border p-6 md:p-8 flex flex-col gap-4 items-center relative animate-float-up ${
-              isDarkMode 
-                ? 'bg-gray-800/60 border-gray-600/40' 
-                : 'bg-white/60 border-blue-200/40'
-            }`}>
+            <div className={`rounded-3xl backdrop-blur-lg shadow-2xl border p-6 md:p-8 flex flex-col gap-4 items-center relative animate-float-up ${isDarkMode
+              ? 'bg-gray-800/60 border-gray-600/40'
+              : 'bg-white/60 border-blue-200/40'
+              }`}>
               <div className="w-full flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 relative">
                   <div className="relative">
-                    <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 z-10 ${
-                      isDarkMode ? 'text-blue-300' : 'text-blue-400'
-                    }`} />
+                    <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 z-10 ${isDarkMode ? 'text-blue-300' : 'text-blue-400'
+                      }`} />
                     <Input
                       ref={inputRef}
                       type="text"
-                      placeholder="Search by city, state, or ZIP code (e.g., Philadelphia, PA, or 19104)"
-                      className={`pl-14 h-16 text-lg border-2 focus:ring-4 transition-all duration-200 shadow-lg rounded-2xl backdrop-blur-md ${
-                        isDarkMode 
-                          ? 'border-gray-600 focus:border-blue-400 focus:ring-blue-900/20 bg-gray-700/80 text-white placeholder-gray-400' 
-                          : 'border-blue-200 focus:border-blue-500 focus:ring-blue-100 bg-white/80'
-                      }`}
+                      placeholder={animatedPlaceholder}
+                      className={`animate-ai-glow pl-14 h-16 text-lg border-2 focus:ring-4 transition-all duration-200 shadow-lg rounded-2xl backdrop-blur-md ${isDarkMode
+                        ? 'border-gray-600 focus:border-blue-400 focus:ring-blue-900/20 bg-gray-700/80 text-white placeholder-gray-400'
+                        : 'border-blue-200 focus:border-blue-500 focus:ring-blue-100 bg-white/80'
+                        }`}
                       value={searchTerm}
                       onChange={(e) => {
                         setSearchTerm(e.target.value);
-                        setErrorMessage(null); // Clear error when user types
+                        setErrorMessage(null);
+                        setAgentResult(null);
                       }}
                       onKeyDown={handleKeyDown}
                       onFocus={() => searchTerm.trim().length > 0 && setShowSuggestions(suggestions.length > 0)}
@@ -480,14 +513,13 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Error Message */}
                   {errorMessage && (
-                    <div className={`mt-3 p-3 rounded-lg border-2 ${
-                      isDarkMode 
-                        ? 'bg-yellow-900/20 border-yellow-600/40 text-yellow-200' 
-                        : 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                    }`}>
+                    <div className={`mt-3 p-3 rounded-lg border-2 ${isDarkMode
+                      ? 'bg-yellow-900/20 border-yellow-600/40 text-yellow-200'
+                      : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                      }`}>
                       <div className="flex items-start gap-2">
                         <div className="flex-shrink-0 mt-0.5">
                           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -505,11 +537,10 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
                   {showSuggestions && (
                     <div
                       ref={suggestionsRef}
-                      className={`absolute top-full left-0 right-0 border-2 rounded-2xl shadow-xl z-50 max-h-96 overflow-y-auto mt-2 ${
-                        isDarkMode 
-                          ? 'bg-gray-800 border-gray-600' 
-                          : 'bg-white border-blue-200'
-                      }`}
+                      className={`absolute top-full left-0 right-0 border-2 rounded-2xl shadow-xl z-50 max-h-96 overflow-y-auto mt-2 ${isDarkMode
+                        ? 'bg-gray-800 border-gray-600'
+                        : 'bg-white border-blue-200'
+                        }`}
                     >
                       {isLoading ? (
                         <div className="flex items-center px-4 py-3">
@@ -519,11 +550,10 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
                       ) : suggestions.length > 0 ? (
                         <>
                           {suggestions.length > 20 && (
-                            <div className={`px-4 py-2 border-b text-xs ${
-                              isDarkMode 
-                                ? 'bg-gray-700 border-gray-600 text-blue-300' 
-                                : 'bg-blue-50 border-blue-200 text-blue-500'
-                            }`}>
+                            <div className={`px-4 py-2 border-b text-xs ${isDarkMode
+                              ? 'bg-gray-700 border-gray-600 text-blue-300'
+                              : 'bg-blue-50 border-blue-200 text-blue-500'
+                              }`}>
                               {suggestions.length === 100 ?
                                 `Showing ${suggestions.length} suggestions (maximum results). Scroll to see all.` :
                                 `Showing ${suggestions.length} suggestions. Scroll for more results.`
@@ -533,28 +563,25 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
                           {suggestions.map((suggestion, index) => (
                             <div
                               key={suggestion.value}
-                              className={`flex items-center px-4 py-3 cursor-pointer transition-colors ${
-                                index === selectedIndex 
-                                  ? isDarkMode 
-                                    ? 'bg-gray-700 border-l-4 border-blue-400' 
-                                    : 'bg-blue-100 border-l-4 border-blue-500'
-                                  : isDarkMode 
-                                    ? 'hover:bg-gray-700' 
-                                    : 'hover:bg-blue-50'
-                              }`}
+                              className={`flex items-center px-4 py-3 cursor-pointer transition-colors ${index === selectedIndex
+                                ? isDarkMode
+                                  ? 'bg-gray-700 border-l-4 border-blue-400'
+                                  : 'bg-blue-100 border-l-4 border-blue-500'
+                                : isDarkMode
+                                  ? 'hover:bg-gray-700'
+                                  : 'hover:bg-blue-50'
+                                }`}
                               onClick={() => handleSuggestionClick(suggestion)}
                             >
-                              <MapPin className={`h-4 w-4 mr-3 ${
-                                isDarkMode ? 'text-blue-300' : 'text-blue-400'
-                              }`} />
+                              <MapPin className={`h-4 w-4 mr-3 ${isDarkMode ? 'text-blue-300' : 'text-blue-400'
+                                }`} />
                               <span className={isDarkMode ? 'text-gray-200' : 'text-gray-700'}>{suggestion.value}</span>
                             </div>
                           ))}
                         </>
                       ) : (
-                        <div className={`px-4 py-3 ${
-                          isDarkMode ? 'text-blue-300' : 'text-blue-400'
-                        }`}>
+                        <div className={`px-4 py-3 ${isDarkMode ? 'text-blue-300' : 'text-blue-400'
+                          }`}>
                           No suggestions found
                         </div>
                       )}
@@ -563,10 +590,9 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
                 </div>
               </div>
               {/* Tagline below search bar */}
-              <div className={`mt-4 text-base md:text-lg font-medium animate-fade-in ${
-                isDarkMode ? 'text-blue-300/80' : 'text-blue-700/80'
-              }`}>
-                Start typing a city, state, or ZIP code to explore your next home.
+              <div className={`mt-4 text-base md:text-lg font-medium animate-fade-in ${isDarkMode ? 'text-blue-300/80' : 'text-blue-700/80'
+                }`}>
+                Start typing a city, ZIP code, or whatever you want to explore.
               </div>
             </div>
           </div>

@@ -19,7 +19,8 @@ Rules:
 3. Use only the tables and columns from the schema provided below. Use lowercase for table and column names.
 4. Prefer LIMIT when the question implies "top N" or "first N" (e.g. LIMIT 5 for "top 5").
 5. Use standard PostgreSQL syntax (e.g. ILIKE for case-insensitive text match).
-6. When querying localmarket, always use DISTINCT on zipcodes or filter by the most recent created_at date to avoid duplicate locations in the results.`;
+6. When querying localmarket, use latest row per zipcode (e.g. ROW_NUMBER() OVER (PARTITION BY zipcode ORDER BY monthdate DESC) = 1 or a subquery) to avoid duplicates.
+7. IMPORTANT: When the question asks for zip codes (e.g. "top N zip codes", "zip codes in X", "zip codes by price"), you MUST return one row per zip code with ALL of these columns so the frontend can display a summary: z.zipcode, z.city, z.state, z.latitude, z.longitude, z.population, lm.medianlistingprice AS medianprice (from localmarket, latest per zipcode), hi.meanincome (from householdincome), hm.ratio AS healthratio (from healthmeasure where measure = 'Obesity among adults'). Join zipcode z LEFT JOIN localmarket lm ON z.zipcode = lm.zipcode (use CTE for latest lm), LEFT JOIN householdincome hi ON z.zipcode = hi.zipcode, LEFT JOIN healthmeasure hm ON z.zipcode = hm.zipcode AND hm.measure = 'Obesity among adults'. Do not return only zipcode—always include city, state, population, medianprice, meanincome, healthratio when the result is a list of zip codes.`;
 
 /**
  * Build user message: schema context + the user's question.
