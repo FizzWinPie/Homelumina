@@ -132,7 +132,7 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [agentResult, setAgentResult] = useState<{ sql: string; rows: Record<string, unknown>[]; summary?: string } | null>(null);
+  const [, setAgentResult] = useState<{ sql: string; rows: Record<string, unknown>[]; summary?: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 

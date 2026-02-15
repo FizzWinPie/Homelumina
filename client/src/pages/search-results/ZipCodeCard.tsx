@@ -9,45 +9,43 @@ export function ZipCodeCard(
   { item: ZipCodeData; isMapPopup?: boolean, currentHealthMeasure: string }
 ) {
     const navigate = useNavigate()
+    const locationPart = [item.city?.trim(), item.state?.trim()].filter(Boolean).join(", ")
+    const headerLabel = locationPart ? `${item.zipcode} - ${locationPart}` : item.zipcode
 
     return (
       <div className={isMapPopup ? "space-y-3" : "space-y-5"}>
-        {!isMapPopup && (
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                {item.zipcode} - {item.city}, {item.state}
-              </h3>
-            </div>
-          </div>
-        )}
+        <div className={`flex items-start justify-between ${isMapPopup ? "mb-2" : "mb-4"}`}>
+          <h3 className={`font-bold text-gray-900 dark:text-gray-100 ${isMapPopup ? "text-sm" : "text-xl"}`}>
+            {headerLabel}
+          </h3>
+        </div>
 
         {/* Key Metrics Grid - Original 3-column layout for regular cards */}
         {isMapPopup ? (
           // Vertical layout for map popup only
           <div className="space-y-2">
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg border-l-4 border-blue-500">
+            <div className="bg-blue-50 dark:bg-blue-950/50 dark:border-blue-500/60 p-2 rounded-lg border-l-4 border-blue-500 dark:border-l-blue-400">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <Users className="w-4 h-4 text-blue-500 mr-2" />
+                  <Users className="w-4 h-4 text-blue-500 dark:text-blue-400 mr-2" />
                   <span className="text-sm text-gray-600 dark:text-gray-300">Population</span>
                 </div>
                 <span className="font-bold text-blue-600 dark:text-blue-400">{formatNumber(item.population)}</span>
               </div>
             </div>
-            <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg border-l-4 border-green-500">
+            <div className="bg-green-50 dark:bg-green-950/50 dark:border-green-500/60 p-2 rounded-lg border-l-4 border-green-500 dark:border-l-green-400">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <DollarSign className="w-4 h-4 text-green-500 mr-2" />
+                  <DollarSign className="w-4 h-4 text-green-500 dark:text-green-400 mr-2" />
                   <span className="text-sm text-gray-600 dark:text-gray-300">Median Income</span>
                 </div>
                 <span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(item.meanincome)}</span>
               </div>
             </div>
-            <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-lg border-l-4 border-orange-500">
+            <div className="bg-orange-50 dark:bg-orange-950/50 dark:border-orange-500/60 p-2 rounded-lg border-l-4 border-orange-500 dark:border-l-orange-400">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <Home className="w-4 h-4 text-orange-500 mr-2" />
+                  <Home className="w-4 h-4 text-orange-500 dark:text-orange-400 mr-2" />
                   <span className="text-sm text-gray-600 dark:text-gray-300">Home Price</span>
                 </div>
                 <span className="font-bold text-orange-600 dark:text-orange-400">{formatCurrency(item.medianprice)}</span>
@@ -57,37 +55,37 @@ export function ZipCodeCard(
         ) : (
           // Responsive grid: 1 column on mobile, 3 on sm+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border-l-4 border-blue-500">
+            <div className="bg-blue-50 dark:bg-blue-950/50 dark:border dark:border-blue-500/40 p-3 rounded-lg border-l-4 border-blue-500 dark:border-l-blue-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Population</p>
                   <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{formatNumber(item.population)}</p>
                 </div>
-                <div className="text-blue-500">
+                <div className="text-blue-500 dark:text-blue-400">
                   <Users className="w-6 h-6" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border-l-4 border-green-500">
+            <div className="bg-green-50 dark:bg-green-950/50 dark:border dark:border-green-500/40 p-3 rounded-lg border-l-4 border-green-500 dark:border-l-green-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Median Income</p>
                   <p className="text-xl font-bold text-green-600 dark:text-green-400">{formatCurrency(item.meanincome)}</p>
                 </div>
-                <div className="text-green-500">
+                <div className="text-green-500 dark:text-green-400">
                   <DollarSign className="w-6 h-6" />
                 </div>
               </div>
             </div>
 
-            <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg border-l-4 border-orange-500">
+            <div className="bg-orange-50 dark:bg-orange-950/50 dark:border dark:border-orange-500/40 p-3 rounded-lg border-l-4 border-orange-500 dark:border-l-orange-400">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Home Price</p>
                   <p className="text-xl font-bold text-orange-600 dark:text-orange-400">{formatCurrency(item.medianprice)}</p>
                 </div>
-                <div className="text-orange-500">
+                <div className="text-orange-500 dark:text-orange-400">
                   <Home className="w-6 h-6" />
                 </div>
               </div>
@@ -96,13 +94,13 @@ export function ZipCodeCard(
         )}
 
         {/* Health & Wellness Metrics */}
-        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-700/80 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
           <h4 className={`font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center ${isMapPopup ? "text-sm" : ""}`}>
-            <Heart className={`text-red-500 mr-2 ${isMapPopup ? "w-4 h-4" : "w-5 h-5"}`} />
+            <Heart className={`text-red-500 dark:text-red-400 mr-2 ${isMapPopup ? "w-4 h-4" : "w-5 h-5"}`} />
             Health & Wellness Metrics
           </h4>
           <div className="space-y-2">
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-lg">
+            <div className="bg-yellow-50 dark:bg-yellow-950/50 dark:border dark:border-yellow-600/40 p-2 rounded-lg">
               <div className="flex justify-between items-center mb-1">
                 <span className={`font-medium text-gray-700 dark:text-gray-300 ${isMapPopup ? "text-xs" : "text-sm"}`}>
                   Health Ratio ({currentHealthMeasure})
@@ -111,22 +109,22 @@ export function ZipCodeCard(
                   {(item.healthratio * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="w-full bg-yellow-200 dark:bg-yellow-800 rounded-full h-2">
-                <div className="bg-yellow-500 dark:bg-yellow-400 h-2 rounded-full" style={{ width: `${item.healthratio * 100}%` }}></div>
+              <div className="w-full bg-yellow-200 dark:bg-yellow-900 rounded-full h-2">
+                <div className="bg-yellow-500 dark:bg-yellow-400 h-2 rounded-full" style={{ width: `${Math.min(100, item.healthratio * 100)}%` }}></div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Public Facilities & Services */}
-        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-700/80 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
           <h4 className={`font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center ${isMapPopup ? "text-sm" : ""}`}>
-            <Building2 className={`text-blue-500 mr-2 ${isMapPopup ? "w-4 h-4" : "w-5 h-5"}`} />
+            <Building2 className={`text-blue-500 dark:text-blue-400 mr-2 ${isMapPopup ? "w-4 h-4" : "w-5 h-5"}`} />
             Public Facilities & Services
           </h4>
           {/* Responsive grid: 1 column on xs, 2 on sm+ */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded-lg text-center">
+            <div className="bg-yellow-50 dark:bg-yellow-950/50 dark:border dark:border-yellow-600/40 p-2 rounded-lg text-center">
               <div className="flex items-center justify-center mb-1">
                 <Building2 className="w-3 h-3 text-yellow-600 dark:text-yellow-400 mr-1" />
                 <div className={`text-yellow-600 dark:text-yellow-400 font-bold ${isMapPopup ? "text-sm" : "text-lg"}`}>
@@ -135,7 +133,7 @@ export function ZipCodeCard(
               </div>
               <div className={`text-gray-600 dark:text-gray-300 ${isMapPopup ? "text-xs" : "text-xs"}`}>Hospitals</div>
             </div>
-            <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded-lg text-center">
+            <div className="bg-red-50 dark:bg-red-950/50 dark:border dark:border-red-500/40 p-2 rounded-lg text-center">
               <div className="flex items-center justify-center mb-1">
                 <Shield className="w-3 h-3 text-red-600 dark:text-red-400 mr-1" />
                 <div className={`text-red-600 dark:text-red-400 font-bold ${isMapPopup ? "text-sm" : "text-lg"}`}>
@@ -144,7 +142,7 @@ export function ZipCodeCard(
               </div>
               <div className={`text-gray-600 dark:text-gray-300 ${isMapPopup ? "text-xs" : "text-xs"}`}>Police Stations</div>
             </div>
-            <div className="bg-red-50 dark:bg-red-900/20 p-2 rounded-lg text-center">
+            <div className="bg-red-50 dark:bg-red-950/50 dark:border dark:border-red-500/40 p-2 rounded-lg text-center">
               <div className="flex items-center justify-center mb-1">
                 <Flame className="w-3 h-3 text-red-600 dark:text-red-400 mr-1" />
                 <div className={`text-red-600 dark:text-red-400 font-bold ${isMapPopup ? "text-sm" : "text-lg"}`}>
@@ -153,7 +151,7 @@ export function ZipCodeCard(
               </div>
               <div className={`text-gray-600 dark:text-gray-300 ${isMapPopup ? "text-xs" : "text-xs"}`}>Fire Stations</div>
             </div>
-            <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg text-center">
+            <div className="bg-green-50 dark:bg-green-950/50 dark:border dark:border-green-500/40 p-2 rounded-lg text-center">
               <div className="flex items-center justify-center mb-1">
                 <Baby className="w-3 h-3 text-green-600 dark:text-green-400 mr-1" />
                 <div className={`text-green-600 dark:text-green-400 font-bold ${isMapPopup ? "text-sm" : "text-lg"}`}>
@@ -164,7 +162,7 @@ export function ZipCodeCard(
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-center">
+            <div className="bg-blue-50 dark:bg-blue-950/50 dark:border dark:border-blue-500/40 p-2 rounded-lg text-center">
               <div className="flex items-center justify-center mb-1">
                 <Shield className="w-3 h-3 text-blue-600 dark:text-blue-400 mr-1" />
                 <div className={`text-blue-600 dark:text-blue-400 font-bold ${isMapPopup ? "text-sm" : "text-lg"}`}>
@@ -173,7 +171,7 @@ export function ZipCodeCard(
               </div>
               <div className={`text-gray-600 dark:text-gray-300 ${isMapPopup ? "text-xs" : "text-xs"}`}>Police Officers</div>
             </div>
-            <div className="bg-orange-50 dark:bg-orange-900/20 p-2 rounded-lg text-center">
+            <div className="bg-orange-50 dark:bg-orange-950/50 dark:border dark:border-orange-500/40 p-2 rounded-lg text-center">
               <div className="flex items-center justify-center mb-1">
                 <Flame className="w-3 h-3 text-orange-600 dark:text-orange-400 mr-1" />
                 <div className={`text-orange-600 dark:text-orange-400 font-bold ${isMapPopup ? "text-sm" : "text-lg"}`}>
