@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Search, MapPin } from "lucide-react";
+import { Search, MapPin, Info } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { API_ENDPOINTS } from "@/config/api";
@@ -593,6 +593,17 @@ export function HeroSection({ isDarkMode = false }: HeroSectionProps) {
               <div className={`mt-4 text-base md:text-lg font-medium animate-fade-in ${isDarkMode ? 'text-blue-300/80' : 'text-blue-700/80'
                 }`}>
                 Start typing a city, ZIP code, or whatever you want to explore.
+              </div>
+              <div
+                className={`mt-4 flex italic items-center justify-center gap-2 rounded-lg border px-3 py-2 text-[12px] max-w-xl mx-auto ${isDarkMode
+                    ? "border-gray-600/50 bg-gray-800/40 text-blue-200/70"
+                    : "border-blue-200/60 bg-blue-50/50 text-gray-800/60"
+                  }`}
+              >
+                <Info className="h-3 w-3 shrink-0 opacity-70 text-current" aria-hidden />
+                <span>
+                  Note: First request may be slower while the server wakes up (Render's free tier cold start)
+                </span>
               </div>
             </div>
           </div>
